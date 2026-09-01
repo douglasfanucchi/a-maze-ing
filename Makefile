@@ -1,4 +1,4 @@
-VENV = a_maze_ing
+VENV = venv
 PYTHON = $(VENV)/bin/python3
 PIP = $(VENV)/bin/pip
 FLAKE8 = $(VENV)/bin/flake8
@@ -14,7 +14,14 @@ install: $(VENV)/bin/activate
 run: install
 	$(PYTHON) a_maze_ing.py config.txt
 
-debug:
+debug: install
+	$(PYTHON) -m pdb a_maze_ing.py config.txt
+# n (next): Execute the current line and move to the next line in the current function.
+# s (step): Step into the function called on the current line.
+# c (continue): Resume normal program execution until it hits the next breakpoint or finishes.
+# p variable_name (print): Print the current value of a variable (e.g., p maze_width).
+# l (list): Show the surrounding lines of code where the debugger is currently paused.
+# q (quit): Abruptly exit the debugger and terminate the program.
 
 clean:
 	rm -rf $(VENV)
