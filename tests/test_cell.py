@@ -1,5 +1,4 @@
 import pytest
-
 from mazegen.cell import Cell
 from mazegen.direction import Direction
 
@@ -8,76 +7,47 @@ class TestCell:
     def test_should_create_basic_cell(self):
         cell = Cell(3, 7)
 
-        assert cell.get_x() == 3
-        assert cell.get_y() == 7
-        assert cell.has_wall("N")
-        assert cell.has_wall("E")
-        assert cell.has_wall("S")
-        assert cell.has_wall("W")
-        assert cell.is_visited() is False
+        assert cell.x == 3
+        assert cell.y == 7
+        assert cell.has_wall(Direction.NORTH)
+        assert cell.has_wall(Direction.EAST)
+        assert cell.has_wall(Direction.SOUTH)
+        assert cell.has_wall(Direction.WEST)
+        assert cell.visited is False
 
     @pytest.mark.parametrize("x, y", [(-1, 0), (0, -1), (-1, -1)])
     def test_should_not_create_cell_with_invalid_coordinates(self, x, y):
         with pytest.raises(ValueError):
             Cell(x, y)
 
-    def test_should_visit_a_cell(self):
-        cell = Cell(5, 5)
-
-        cell.visit()
-
-        assert cell.is_visited() is True
-
-    @pytest.mark.parametrize("side", ["N", "E", "S", "W"])
-    def test_should_break_wall_of_a_cell(self, side):
-        cell = Cell(5, 5)
-
-        cell.break_wall(side)
-
-        assert cell._walls[side] is False
-
-    @pytest.mark.parametrize("side", ["N", "E", "S", "W"])
-    def test_should_check_for_non_existing_wall(self, side):
-        cell = Cell(5, 5)
-
-        cell.break_wall(side)
-
-        assert cell.has_wall(side) is False
-
     @pytest.mark.parametrize(
-        "side, direction, expected_bitmask",
+        "direction, expected_bitmask",
         [
-            ("N", Direction.NORTH, 0b1110),
-            ("E", Direction.EAST, 0b1101),
-            ("S", Direction.SOUTH, 0b1011),
-            ("W", Direction.WEST, 0b0111),
+            (Direction.NORTH, 14), 
+            (Direction.EAST, 13),  
+            (Direction.SOUTH, 11), 
+            (Direction.WEST, 7),   
         ],
     )
-    def test_should_check_bitmask_values_of_broken_walls(
-        self, side, direction, expected_bitmask
-    ):
+    def test_should_remove_wall_and_update_bitmask(self, direction: Direction, expected_bitmask: int) -> None:
         cell = Cell(5, 5)
-
-        cell._walls[side] = False
-
-        assert cell.to_bitmask() == expected_bitmask
-        assert cell.to_bitmask() & direction == 0
+        cell.remove_wall(direction)
+        assert cell.has_wall(direction) is False
+        assert cell.walls == expected_bitmask
 
     @pytest.mark.parametrize(
         "broken_sides, expected_hex",
         [
-            (["W", "S", "E"], "1"),
-            (["W", "S"], "3"),
-            (["W"], "7"),
+            ([Direction.WEST, Direction.SOUTH, Direction.EAST], "1"),
+            ([Direction.WEST, Direction.SOUTH], "3"),
+            ([Direction.WEST], "7"),
             ([], "f"),
         ],
     )
     def test_should_check_hex_representation_of_broken_walls(
-        self, broken_sides, expected_hex
-    ):
+        self, broken_sides: list[Direction], expected_hex: str
+    ) -> None:
         cell = Cell(2, 3)
-
         for side in broken_sides:
-            cell._walls[side] = False
-
+            cell.remove_wall(side)
         assert cell.to_hex() == expected_hex
