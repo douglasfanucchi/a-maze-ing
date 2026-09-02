@@ -26,3 +26,11 @@ class TestCell:
         cell.break_wall(side)
 
         assert cell._walls[side] is False
+
+    @pytest.mark.parametrize("side", ["N", "E", "S", "W"])
+    def test_should_check_for_non_existing_wall(self, side):
+        cell = Cell(5, 5)
+
+        cell.break_wall(side)
+
+        assert cell.has_wall(side) is False
