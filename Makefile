@@ -40,3 +40,9 @@ lint: install
 lint-strict: install
 	@$(FLAKE8) . --exclude $(VENV)
 	@$(MYPY) . --strict --exclude $(VENV)
+
+test: install
+	$(PYTHON) -m pytest tests/
+
+test-v: install
+	$(PYTHON) -m pytest tests/ -v
