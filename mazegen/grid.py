@@ -87,3 +87,28 @@ class Grid:
             if (neighbor_cell is not None) and (not neighbor_cell.visited):
                 neighbors.append((direction, neighbor_cell))
         return neighbors
+
+    def connect_cells(
+        self, current: Cell, neighbor: Cell, direction: Direction
+    ) -> None:
+        """
+        Remove the walls between two adjacent cells bidirectionally.
+
+        Args:
+            current: The starting cell node.
+            neighbor: The adjacent cell node to connect to.
+            direction: The cardinal direction moving from current to neighbor.
+
+        Raises:
+            ValueError: If the cells are not actually adjacent neighbors.
+        """
+        # Validate the cells are strictly 1 step apart (Manhattan distance = 1)
+        dx = abs(current.x - neighbor.x)
+        dy = abs(current.y - neighbor.y)
+        if (dx + dy) != 1:
+            current_coords: str = f"({current.x}, {current.y})"
+            neighbor_coords: str = f"({neighbor.x}, {neighbor.y}))"
+            cells: str = f"{current_coords} and {neighbor_coords}"
+            raise ValueError(f"Cannot connect non-adjacent cells: {cells}")
+        current.remove_wall(direction)
+        neighbor.remove_wall(direction.opposite)
