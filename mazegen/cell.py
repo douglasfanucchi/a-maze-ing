@@ -13,12 +13,16 @@ class Cell:
             "S": True,
             "W": True,
         }
+        self._visited = False
 
     def get_x(self) -> int:
         return self._x
 
     def get_y(self) -> int:
         return self._y
+
+    def is_visited(self) -> bool:
+        return self._visited
 
     def break_wall(self, side: str) -> None:
         if side not in self._walls:
