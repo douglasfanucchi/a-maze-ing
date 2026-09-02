@@ -24,6 +24,9 @@ class Cell:
     def is_visited(self) -> bool:
         return self._visited
 
+    def visit(self) -> None:
+        self._visited = True
+
     def break_wall(self, side: str) -> None:
         if side not in self._walls:
             raise ValueError(f"Invalid side: {side}")

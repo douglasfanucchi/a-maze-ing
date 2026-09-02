@@ -21,6 +21,13 @@ class TestCell:
         with pytest.raises(ValueError):
             Cell(x, y)
 
+    def test_should_visit_a_cell(self):
+        cell = Cell(5, 5)
+
+        cell.visit()
+
+        assert cell.is_visited() is True
+
     @pytest.mark.parametrize("side", ["N", "E", "S", "W"])
     def test_should_break_wall_of_a_cell(self, side):
         cell = Cell(5, 5)
