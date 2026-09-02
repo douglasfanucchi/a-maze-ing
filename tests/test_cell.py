@@ -1,6 +1,7 @@
 import pytest
 
 from mazegen.cell import Cell
+from mazegen.direction import Direction
 
 
 class TestCell:
@@ -34,3 +35,22 @@ class TestCell:
         cell.break_wall(side)
 
         assert cell.has_wall(side) is False
+
+    @pytest.mark.parametrize(
+        "side, direction, expected_bitmask",
+        [
+            ("N", Direction.NORTH, 0b1110),
+            ("E", Direction.EAST, 0b1101),
+            ("S", Direction.SOUTH, 0b1011),
+            ("W", Direction.WEST, 0b0111),
+        ],
+    )
+    def test_should_check_bitmask_values_of_broken_walls(
+        self, side, direction, expected_bitmask
+    ):
+        cell = Cell(5, 5)
+
+        cell._walls[side] = False
+
+        assert cell.to_bitmask() == expected_bitmask
+        assert cell.to_bitmask() & direction == 0
