@@ -1,17 +1,28 @@
+import pytest
+
 from mazegen.cell import Cell
 
 
-def test_cell_initialization() -> None:
-    cell = Cell(0, 5)
-    assert cell.x == 0
-    assert cell.y == 5
-    assert cell.walls == 15
-    assert cell.visited is False
+class TestCell:
+    def test_should_create_basic_cell(self):
+        cell = Cell(3, 7)
 
+        assert cell.get_x() == 3
+        assert cell.get_y() == 7
+        assert cell.has_wall("N")
+        assert cell.has_wall("E")
+        assert cell.has_wall("S")
+        assert cell.has_wall("W")
 
-def test_remove_wall() -> None:
-    cell = Cell(1, 1)
-    # North wall bit is 1. 15 (1111) with North removed becomes 14 (1110)
-    cell.remove_wall(1)
-    assert cell.has_wall(1) is False
-    assert cell.walls == 14
+    @pytest.mark.parametrize("x, y", [(-1, 0), (0, -1), (-1, -1)])
+    def test_should_not_create_cell_with_invalid_coordinates(self, x, y):
+        with pytest.raises(ValueError):
+            Cell(x, y)
+
+    @pytest.mark.parametrize("side", ["N", "E", "S", "W"])
+    def test_should_break_wall_of_a_cell(self, side):
+        cell = Cell(5, 5)
+
+        cell.break_wall(side)
+
+        assert cell._walls[side] is False
