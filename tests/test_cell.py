@@ -54,3 +54,22 @@ class TestCell:
 
         assert cell.to_bitmask() == expected_bitmask
         assert cell.to_bitmask() & direction == 0
+
+    @pytest.mark.parametrize(
+        "broken_sides, expected_hex",
+        [
+            (["W", "S", "E"], "1"),
+            (["W", "S"], "3"),
+            (["W"], "7"),
+            ([], "f"),
+        ],
+    )
+    def test_should_check_hex_representation_of_broken_walls(
+        self, broken_sides, expected_hex
+    ):
+        cell = Cell(2, 3)
+
+        for side in broken_sides:
+            cell._walls[side] = False
+
+        assert cell.to_hex() == expected_hex
