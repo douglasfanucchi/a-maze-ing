@@ -2,52 +2,61 @@ from mazegen.direction import Direction
 
 
 class Cell:
+    """
+    Represents a single cell node within a maze grid.
+
+    Tracks coordinates, wall state using a bitmask and traversal history.
+
+    Attributes:
+        x: Zero-based horizontal coordinate of the cell. (Starts from left)
+        y: Zero-based vertical coordinate of the cell. (Starts from top)
+        walls: Bitmask integer representing wall states (0 to 15).
+        visited: Boolean flag tracking if the cell was already processed.
+    """
+
     def __init__(self, x: int, y: int) -> None:
+        """Initialize a Cell instance with coordinates and closed walls.
+
+        Args:
+            x: The horizontal coordinate.
+            y: The vertical coordinate.
+
+        Raises:
+            ValueError: If coordinates are negative.
+        """
         if x < 0 or y < 0:
             raise ValueError(f"Invalid coordinates: ({x}, {y})")
-        self._x = x
-        self._y = y
-        self._walls = {
-            "N": True,
-            "E": True,
-            "S": True,
-            "W": True,
-        }
-        self._visited = False
+        self.x: int = x
+        self.y: int = y
+        self.walls: int = 15  # Binary 1111 (all walls closed)
+        self.visited: bool = False
 
-    def get_x(self) -> int:
-        return self._x
+    def remove_wall(self, direction: Direction) -> None:
+        """
+        Remove a wall in the specified cardinal direction.
 
-    def get_y(self) -> int:
-        return self._y
+        Args:
+            direction: The cardinal direction enum corresponding to the wall.
+        """
+        self.walls &= ~direction.value
 
-    def is_visited(self) -> bool:
-        return self._visited
+    def has_wall(self, direction: Direction) -> bool:
+        """
+        Check if a wall exists in the specified direction.
 
-    def visit(self) -> None:
-        self._visited = True
+        Args:
+            direction: The cardinal direction enum to verify.
 
-    def break_wall(self, side: str) -> None:
-        if side not in self._walls:
-            raise ValueError(f"Invalid side: {side}")
-        self._walls[side] = False
-
-    def has_wall(self, side: str) -> bool:
-        if side not in self._walls:
-            raise ValueError(f"Invalid side: {side}")
-        return self._walls[side]
-
-    def to_bitmask(self) -> int:
-        bitmask = 0
-        if self._walls["N"]:
-            bitmask |= Direction.NORTH
-        if self._walls["E"]:
-            bitmask |= Direction.EAST
-        if self._walls["S"]:
-            bitmask |= Direction.SOUTH
-        if self._walls["W"]:
-            bitmask |= Direction.WEST
-        return bitmask
+        Returns:
+            True if the wall is closed, False otherwise.
+        """
+        return bool(self.walls & direction.value)
 
     def to_hex(self) -> str:
-        return format(self.to_bitmask(), "x")
+        """
+        Convert the wall bitmask into a single hexadecimal character.
+
+        Returns:
+            A lowercase string with 1 hex char representing the cell's walls.
+        """
+        return format(self.walls, "x")
