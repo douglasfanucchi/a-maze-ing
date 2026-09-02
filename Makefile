@@ -29,17 +29,18 @@ clean:
 	rm -rf .mypy_cache
 
 lint: install
-	@$(FLAKE8) . --exclude $(VENV)
+	@$(FLAKE8) . --exclude $(VENV),tests
 	@$(MYPY) . --warn-return-any\
-			  --warn-unused-ignores\
-			  --ignore-missing-imports\
-			  --disallow-untyped-defs\
-			  --check-untyped-defs\
-			  --exclude $(VENV)
+			   --warn-unused-ignores\
+			   --ignore-missing-imports\
+			   --disallow-untyped-defs\
+			   --check-untyped-defs\
+			   --exclude $(VENV)\
+			   --exclude tests
 
 lint-strict: install
-	@$(FLAKE8) . --exclude $(VENV)
-	@$(MYPY) . --strict --exclude $(VENV)
+	@$(FLAKE8) . --exclude $(VENV),tests
+	@$(MYPY) . --strict --exclude $(VENV) --exclude tests
 
 test: install
 	$(PYTHON) -m pytest tests/
