@@ -37,16 +37,22 @@ class MazeGenerator():
     def _reserve_42_pattern(self) -> None:
         """
         Reserve center cells for the 42 pattern by marking them visited.
+
+        Raises:
+            ValueError: If width or height is too small to fit the 42 pattern
         """
         pattern_width = 7
         pattern_height = 5
+        min_width = pattern_width + 2
+        min_height = pattern_height + 2
 
         # Validate the grid is large enough to hold the pattern safely
-        if (
-            self.grid.width < pattern_width + 2
-            or self.grid.height < pattern_height + 2
-        ):
-            return
+        if (self.grid.width < min_width or self.grid.height < min_height):
+            raise ValueError(
+                f"Grid size ({self.grid.width}x{self.grid.height})"
+                f" is too small for the 42 pattern. Minimum required: "
+                f"{min_width}x{min_height}."
+            )
 
         # (start_x, start_y) are the top left coordinates
         # where the 42 pattern starts
