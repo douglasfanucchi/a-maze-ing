@@ -1,4 +1,5 @@
 from mazegen.grid import Grid
+from mazegen.algorithms.protocol import MazeAlgorithm
 
 
 class MazeGenerator():
@@ -6,21 +7,27 @@ class MazeGenerator():
     """
 
     def __init__(
-        self, width: int, height: int, is_perfect: bool,
-        entry_coords: tuple[int, int], exit_coords: tuple[int, int]
+        self,
+        grid: Grid,
+        entry_coords: tuple[int, int],
+        exit_coords: tuple[int, int],
+        algorithm: MazeAlgorithm,
+        is_perfect: bool = False
     ) -> None:
         """
         """
-        self.grid = Grid(width, height)
-        self.is_perfect: bool = is_perfect
-        self.entry: tuple[int, int] = entry_coords
-        self.exit: tuple[int, int] = exit_coords
+        self.grid = grid
+        self.algorithm = algorithm
+        self.is_perfect = is_perfect
+        self.entry = entry_coords
+        self.exit = exit_coords
 
     def generate(self) -> None:
-        """
-        """
-        # Public method that will call the other private methods
-        ...
+        """Execute maze generation sequence"""
+        self._reserve_42_pattern()
+        self.algorithm.execute(self.grid)
+        if not self.is_perfect:
+            self._create_loops()
 
     def export(self) -> str:
         """
@@ -72,18 +79,17 @@ class MazeGenerator():
         for dy, row in enumerate(pattern):
             for dx, block in enumerate(row):
                 if block == 1:
-                    cell = self.grid.get_cell(start_x + dx, start_y + dy)
+                    block_x: int = start_x + dx
+                    block_y: int = start_y + dy
+                    if (block_x, block_y) in [self.entry, self.exit]:
+                        raise ValueError(
+                            "Configuration overlap: The 42 pattern "
+                            "overlaps wiith the entry or exit coordinate at "
+                            f"({block_x}, {block_y})."
+                        )
+                    cell = self.grid.get_cell(block_x, block_y)
                     if cell is not None:
                         cell.visited = True
-
-    def _build_maze(self) -> None:
-        """
-        """
-        # Core generation algorithm
-        # Loops through the grid using Grid.get_unvisited_neighbors() to select
-        # paths and Grid.connect_cells() to securely break the walls
-        # bidirectionally.
-        ...
 
     def _create_loops(self) -> None:
         """
