@@ -223,11 +223,6 @@ class TestConfig:
             "OUTPUT_FILE=maze.txt", f"OUTPUT_FILE={str(non_writable_path)}"
         )
         config_file.write_text(content)
-        from os import path, access, W_OK
-        f = open("err", "w")
-        value = str(non_writable_path)
-        f.write(str((not path.isfile(value) and access(path.dirname(value), W_OK))))
-        f.close()
 
         with pytest.raises(
             ValueError,
