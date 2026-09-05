@@ -91,3 +91,6 @@ class TestConfigValidator:
         path = str(valid_config_file)
 
         assert ConfigValidator.is_valid_file_syntax(path) is True
+
+    def test_should_check_for_invalid_line_with_double_equal_sign(self):
+        assert ConfigValidator.is_valid_line("WIDTH==20") is False

@@ -44,7 +44,7 @@ class ConfigValidator:
             return True
         if stripped.startswith("#"):
             return True
-        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=\S+(\s+#.*)?$", stripped):
+        if re.match(r"^[A-Za-z_][A-Za-z0-9_]*=[^\s=]+(\s+#.*)?$", stripped):
             return True
         return False
 
