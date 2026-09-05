@@ -11,13 +11,6 @@ class Config:
     ``KEY=value`` lines (optionally followed by a ``# comment``), one of
     each of the required keys: ``WIDTH``, ``HEIGHT``, ``ENTRY``, ``EXIT``,
     ``OUTPUT_FILE`` and ``PERFECT``.
-
-    Attributes:
-        _required_keys: The keys that must be present in the config file.
-        _valid_keys: The keys that are recognized when parsing values.
-        _values: The parsed and type-converted configuration values.
-        _path: The path of the configuration file.
-        _raw_values: The parsed configuration values, still as strings.
     """
 
     def __init__(self, path: str):
