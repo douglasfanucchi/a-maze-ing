@@ -46,8 +46,7 @@ class MazeGenerator():
                 line += self.grid.get_cell(x, y).to_hex()
             result += line + "\n"
         result += f"\n{self.entry[0]},{self.entry[1]}\n"
-        result += f"{self.exit[0]},{self.exit[1]}\n"
-        result += self._get_shortes_path_directions()
+        result += f"{self.exit[0]},{self.exit[1]}"
         return result
 
     def render(self) -> None:
@@ -138,8 +137,3 @@ class MazeGenerator():
             to_connect is not None and
             to_connect.forty_two is False
         )
-
-    def _get_shortes_path_directions(self) -> str:
-        """
-        """
-        return ""
