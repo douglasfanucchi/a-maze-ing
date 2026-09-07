@@ -1,6 +1,6 @@
 from .config_validator import ConfigValidator
 from re import match, search
-from typing import Callable
+from typing import Callable, Literal, overload
 from os import access, W_OK, path
 
 
@@ -42,6 +42,21 @@ class Config:
         self._raw_values: dict[str, str] = self._get_raw_values()
         self._validate_config_values()
         self._load_values()
+
+    @overload
+    def get(self, key: Literal["WIDTH", "HEIGHT"]) -> int: ...
+
+    @overload
+    def get(self, key: Literal["ENTRY", "EXIT"]) -> tuple[int, int]: ...
+
+    @overload
+    def get(self, key: Literal["OUTPUT_FILE"]) -> str: ...
+
+    @overload
+    def get(self, key: Literal["PERFECT"]) -> bool: ...
+
+    @overload
+    def get(self, key: str) -> int | tuple[int, int] | str | bool: ...
 
     def get(self, key: str) -> int | tuple[int, int] | str | bool:
         """Return the parsed value for a configuration key.
