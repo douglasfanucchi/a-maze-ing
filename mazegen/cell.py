@@ -60,3 +60,15 @@ class Cell:
             A lowercase string with 1 hex char representing the cell's walls.
         """
         return format(self.walls, "x")
+
+    def count_walls(self) -> int:
+        """
+        Count the amount of walls the cell has.
+        """
+        bit = 1
+        result = 0
+        for i in range(0, 4):
+            if self.walls & bit:
+                result += 1
+            bit <<= 1
+        return result
