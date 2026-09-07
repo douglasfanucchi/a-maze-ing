@@ -28,3 +28,27 @@ class Direction(IntEnum):
             Direction.WEST: (-1, 0)
         }
         return vectors[direction]
+
+    @classmethod
+    def vector_direction(cls, vector: tuple[int, int]) -> Direction:
+        """Return the direction that is associated with a vector"""
+        directions: dict[tuple, Direction] = {
+            (0, -1): Direction.NORTH,
+            (1, 0): Direction.EAST,
+            (0, 1): Direction.SOUTH,
+            (-1, 0): Direction.WEST
+        }
+        return directions[vector]
+
+    @classmethod
+    def get_direction_label(cls, direction: Direction) -> str:
+        """
+        Return the cardinal abreviation of a given direction.
+        """
+        labels: dict[Direction, str] = {
+            Direction.NORTH: "N",
+            Direction.EAST: "E",
+            Direction.SOUTH: "S",
+            Direction.WEST: "W",
+        }
+        return labels[direction]
