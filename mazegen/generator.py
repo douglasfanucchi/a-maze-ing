@@ -27,6 +27,7 @@ class MazeGenerator():
         self.is_perfect = is_perfect
         self.entry = entry_coords
         self.exit = exit_coords
+        self.forty_two = False
 
     def generate(self) -> None:
         """Execute maze generation sequence"""
@@ -76,12 +77,8 @@ class MazeGenerator():
 
         # Validate the grid is large enough to hold the pattern safely
         if (self.grid.width < min_width or self.grid.height < min_height):
-            raise ValueError(
-                f"Grid size ({self.grid.width}x{self.grid.height})"
-                f" is too small for the 42 pattern. Minimum required: "
-                f"{min_width}x{min_height}."
-            )
-
+            return
+        self.forty_two = True
         # (start_x, start_y) are the top left coordinates
         # where the 42 pattern starts
         start_x = (self.grid.width - pattern_width) // 2
