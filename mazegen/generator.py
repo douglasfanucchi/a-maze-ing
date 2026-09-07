@@ -18,6 +18,10 @@ class MazeGenerator():
     ) -> None:
         """
         """
+        if entry_coords[0] >= grid.width or entry_coords[1] >= grid.height:
+            raise ValueError("ENTRY coordinates are out of bounds.")
+        if exit_coords[0] >= grid.width or exit_coords[1] >= grid.height:
+            raise ValueError("EXIT coordinates are out of bounds.")
         self.grid = grid
         self.algorithm = algorithm
         self.is_perfect = is_perfect
