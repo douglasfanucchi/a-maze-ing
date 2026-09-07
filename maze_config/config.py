@@ -143,7 +143,7 @@ class Config:
         Raises:
             ValueError: If any key's raw value fails all of its rules.
         """
-        positive_number_regex: str = "[1-9][0-9]{1,}"
+        positive_number_regex: str = "[1-9][0-9]{0,}"
         rules_list: dict[str, list[Callable[[str], bool]]] = {
             "WIDTH": [
                 lambda value: bool(match(f"^{positive_number_regex}$", value))
