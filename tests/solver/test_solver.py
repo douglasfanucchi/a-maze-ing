@@ -31,7 +31,7 @@ class TestSolver:
         self, generate_maze: Callable[[int, int, bool], MazeGenerator]
     ) -> None:
         generator = generate_maze(2, 2, True)
-        solver = Solver(generator.grid)
+        solver = Solver(generator.grid, (0, 0), (1, 1))
         # 1011 1011
         # 1100 0110
 
@@ -46,7 +46,7 @@ class TestSolver:
     ):
         generator = generate_maze(10, 10, True)
 
-        solver = Solver(generator.grid)
+        solver = Solver(generator.grid, (0, 0), (9, 9))
 
         assert len(solver.shortest_paths()) == 1
         assert len(solver.paths()) == 1
@@ -59,7 +59,7 @@ class TestSolver:
     ):
         generator = generate_maze(10, 10, False)
 
-        solver = Solver(generator.grid)
+        solver = Solver(generator.grid, (0, 0), (9, 9))
         min_len = min([len(path) for path in solver.paths()])
 
         assert all([len(path) == min_len for path in solver.shortest_paths()])
