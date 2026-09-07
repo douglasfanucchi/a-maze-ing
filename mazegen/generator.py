@@ -43,7 +43,10 @@ class MazeGenerator():
         for y in range(0, self.grid.height):
             line = ""
             for x in range(0, self.grid.width):
-                line += self.grid.get_cell(x, y).to_hex()
+                cell = self.grid.get_cell(x, y)
+                if cell is None:
+                    continue
+                line += cell.to_hex()
             result += line + "\n"
         result += f"\n{self.entry[0]},{self.entry[1]}\n"
         result += f"{self.exit[0]},{self.exit[1]}"
