@@ -17,3 +17,14 @@ class Direction(IntEnum):
             Direction.WEST: Direction.EAST,
         }
         return opposites[self]
+
+    @classmethod
+    def direction_vector(cls, direction: Direction) -> tuple[int, int]:
+        """Return the vector that moves a point into a certain direction"""
+        vectors: dict[Direction, tuple] = {
+            Direction.NORTH: (0, -1),
+            Direction.EAST: (1, 0),
+            Direction.SOUTH: (0, 1),
+            Direction.WEST: (-1, 0)
+        }
+        return vectors[direction]
