@@ -31,9 +31,22 @@ class MazeGenerator():
 
     def export(self) -> str:
         """
+        Create output containing maze configuration.
+
+        Returns:
+            A string containing maze hexadecimal representation, its dimensions
+            and the coordinates to the shortes path from entry to end.
         """
-        # Translates the final shape of the maze into the hex required format
-        return ""
+        result = ""
+        for y in range(0, self.grid.height):
+            line = ""
+            for x in range(0, self.grid.width):
+                line += self.grid.get_cell(x, y).to_hex()
+            result += line + "\n"
+        result += f"\n{self.entry[0]},{self.entry[1]}\n"
+        result += f"{self.exit[0]},{self.exit[1]}\n"
+        result += self._get_shortes_path_directions()
+        return result
 
     def render(self) -> None:
         """
@@ -99,4 +112,8 @@ class MazeGenerator():
         # It selects a random adjacent, valid, non-boundary cell and
         # utilizes Grid.connect_cells() to knock down a wall,
         # establishing a cyclical path.
-        ...
+
+    def _get_shortes_path_directions(self) -> str:
+        """
+        """
+        return ""
