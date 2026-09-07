@@ -39,3 +39,16 @@ class TestSolver:
         assert len(solver.shortest_paths()) == 1
         assert len(solver.wrong_paths()) == 0
         assert solver.shortest_paths()[0] == "SE"
+
+    def test_should_solve_a_perfect_maze(
+        self,
+        generate_maze: Callable[[int, int, bool], MazeGenerator]
+    ):
+        generator = generate_maze(10, 10, True)
+
+        solver = Solver(generator.grid)
+
+        assert len(solver.shortest_paths()) == 1
+        assert len(solver.paths()) == 1
+        assert solver.paths() == solver.shortest_paths()
+        assert len(solver.wrong_paths()) > 0
