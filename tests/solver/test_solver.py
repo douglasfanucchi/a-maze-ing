@@ -52,3 +52,16 @@ class TestSolver:
         assert len(solver.paths()) == 1
         assert solver.paths() == solver.shortest_paths()
         assert len(solver.wrong_paths()) > 0
+
+    def test_should_solve_a_non_perfect_maze(
+        self,
+        generate_maze: Callable[[int, int, bool], MazeGenerator]
+    ):
+        generator = generate_maze(10, 10, False)
+
+        solver = Solver(generator.grid)
+        min_len = min([len(path) for path in solver.paths()])
+
+        assert all([len(path) == min_len for path in solver.shortest_paths()])
+        assert len(solver.paths()) > 1
+        assert len(solver.wrong_paths()) > 0
