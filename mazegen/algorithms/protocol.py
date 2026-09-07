@@ -8,7 +8,7 @@ class MazeAlgorithm(Protocol):
 
     def __init__(self, seed: Optional[int]):
         """Initiate the algorithm default state.
-        
+
         Args:
             seed: Seed to reproduce a specific paths creation.
         """
