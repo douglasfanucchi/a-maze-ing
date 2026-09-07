@@ -12,7 +12,10 @@ class DFS(MazeAlgorithm):
 
     def execute(self, grid: Grid) -> None:
         stack: deque[Cell] = deque()
-        stack.append(grid.get_cell(0, 0))
+        cell = grid.get_cell(0, 0)
+        if cell is None:
+            return
+        stack.append(cell)
         while len(stack):
             v = stack[-1]
             v.visited = True
