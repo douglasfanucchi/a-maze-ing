@@ -14,6 +14,7 @@ class TestCell:
         assert cell.has_wall(Direction.SOUTH)
         assert cell.has_wall(Direction.WEST)
         assert cell.visited is False
+        assert cell.forty_two is False
 
     @pytest.mark.parametrize("x, y", [(-1, 0), (0, -1), (-1, -1)])
     def test_should_not_create_cell_with_invalid_coordinates(self, x, y):

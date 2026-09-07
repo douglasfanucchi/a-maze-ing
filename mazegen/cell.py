@@ -28,6 +28,7 @@ class Cell:
             raise ValueError(f"Invalid coordinates: ({x}, {y})")
         self.x: int = x
         self.y: int = y
+        self.forty_two: bool = False
         self.walls: int = 15  # Binary 1111 (all walls closed)
         self.visited: bool = False
 
