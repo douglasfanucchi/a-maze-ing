@@ -103,6 +103,7 @@ class MazeGenerator():
                     cell = self.grid.get_cell(block_x, block_y)
                     if cell is not None:
                         cell.visited = True
+                        cell.forty_two = True
 
     def _create_loops(self) -> None:
         """
