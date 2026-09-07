@@ -1,5 +1,7 @@
 from mazegen.grid import Grid
 from mazegen.algorithms.protocol import MazeAlgorithm
+from mazegen.direction import Direction
+from mazegen.cell import Cell
 
 
 class MazeGenerator():
@@ -107,12 +109,35 @@ class MazeGenerator():
 
     def _create_loops(self) -> None:
         """
+        Create loops for a playable maze by removing dead-ends.
         """
-        # The post-processing Pac-Man phase. If self.is_perfect is False, this
-        # method scans the grid for "dead ends" (cells with 3 closed walls).
-        # It selects a random adjacent, valid, non-boundary cell and
-        # utilizes Grid.connect_cells() to knock down a wall,
-        # establishing a cyclical path.
+        for y in range(0, self.grid.height):
+            for x in range(0, self.grid.width):
+                cell = self.grid.get_cell(x, y)
+                if cell is None or cell.count_walls() != 3:
+                    continue
+                direction: Direction | None = None
+                for i in range(0, 4):
+                    if self._can_break_wall(cell, Direction(1 << i)):
+                        direction = Direction(1 << i)
+                if direction is None:
+                    continue
+                new_x: int = cell.x + Direction.direction_vector(direction)[0]
+                new_y: int = cell.y + Direction.direction_vector(direction)[1]
+                to_connect = self.grid.get_cell(new_x, new_y)
+                if to_connect is None:
+                    continue
+                self.grid.connect_cells(cell, to_connect, direction)
+
+    def _can_break_wall(self, cell: Cell, direction: Direction) -> bool:
+        x: int = cell.x + Direction.direction_vector(direction)[0]
+        y: int = cell.y + Direction.direction_vector(direction)[1]
+        to_connect: Cell | None = self.grid.get_cell(x, y)
+        return (
+            cell.has_wall(direction) and
+            to_connect is not None and
+            to_connect.forty_two is False
+        )
 
     def _get_shortes_path_directions(self) -> str:
         """
