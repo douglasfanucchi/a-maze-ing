@@ -24,6 +24,11 @@ def main() -> None:
             exit_coords=config.get("EXIT")
         )
         generator.generate()
+        if not generator.forty_two:
+            print(
+                "WARNING! The maze does not support 42 pattern.",
+                file=sys.stderr
+            )
         solver = Solver(grid, config.get("ENTRY"), config.get("EXIT"))
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
