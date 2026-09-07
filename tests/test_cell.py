@@ -51,3 +51,21 @@ class TestCell:
         for side in broken_sides:
             cell.remove_wall(side)
         assert cell.to_hex() == expected_hex
+
+    @pytest.mark.parametrize(
+        "walls,expected",
+        [
+            (Direction.NORTH + Direction.EAST + Direction.SOUTH + Direction.WEST, 4),
+            (Direction.NORTH + Direction.EAST + Direction.SOUTH, 3),
+            (Direction.NORTH + Direction.EAST, 2),
+            (Direction.NORTH, 1),
+        ]
+    )
+    def test_should_count_amount_of_walls(
+        self,
+        walls: int,
+        expected: int
+    ):
+        cell = Cell(0, 0)
+        cell.walls = walls
+        assert cell.count_walls() == expected
