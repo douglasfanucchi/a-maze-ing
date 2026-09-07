@@ -1,34 +1,33 @@
 import sys
 from mazegen.grid import Grid
 from mazegen.generator import MazeGenerator
-from mazegen.algorithms import MazeAlgorithm
+from mazegen.algorithms import DFS
+from solver import Solver
+from maze_config import Config
 
 
 def main() -> None:
-    # Parse and validate config.txt initializing variables:
-    # width, height, algorithm (default DFS),
-    # is_perfect (Default False), entry_coords and exit_coords
+    config: Config
+    try:
+        config = Config(sys.argv[1])
+    except (PermissionError, FileNotFoundError, ValueError) as e:
+        sys.stderr.write(f"Error: {e}\n")
+        sys.exit(1)
 
-    # Placeholder values:
-    width: int = 20
-    height: int = 20
-    is_perfect: bool = False
-    algorithm: MazeAlgorithm
-    entry_coords = (0, 0)
-    exit_coords = (width - 1, height - 1)
-    # --------------------------------------------
-
-    grid = Grid(width, height)
+    grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
     try:
         generator = MazeGenerator(
             grid=grid,
-            algorithm=algorithm,
-            is_perfect=is_perfect,
-            entry_coords=entry_coords,
-            exit_coords=exit_coords
+            algorithm=DFS(1),
+            is_perfect=config.get("PERFECT"),
+            entry_coords=config.get("ENTRY"),
+            exit_coords=config.get("EXIT")
         )
         generator.generate()
-        print(generator.export())
+        solver = Solver(grid, config.get("ENTRY"), config.get("EXIT"))
+        with open(config.get("OUTPUT_FILE"), "w") as output_file:
+            print(generator.export(), file=output_file)
+            print(solver.shortest_paths()[0], file=output_file)
     except ValueError as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
