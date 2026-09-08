@@ -33,9 +33,10 @@ class Config:
             "OUTPUT_FILE",
             "PERFECT",
         ]
-        self._optional_keys: dict[str, None | bool | int] = {
+        self._optional_keys: dict[str, None | bool | int | str] = {
             "SEED": None,
-            "ANIMATIONS": False
+            "ANIMATIONS": False,
+            "ALGORITHM": "DFS",
         }
         self._valid_keys: list[str] = (
             self._required_keys + list(self._optional_keys.keys())
@@ -200,6 +201,9 @@ class Config:
             ],
             "ANIMATIONS": [
                 lambda value: bool(match("^(ON|OFF)$", value))
+            ],
+            "ALGORITHM": [
+                lambda value: bool(match("^(DFS|Prim)$", value))
             ]
         }
 
@@ -223,3 +227,5 @@ class Config:
             self._values["SEED"] = int(self._raw_values["SEED"])
         if "ANIMATIONS" in self._raw_values:
             self._values["ANIMATIONS"] = self._raw_values["ANIMATIONS"] == "ON"
+        if "ALGORITHM" in self._raw_values:
+            self._values["ALGORITHM"] = self._raw_values["ALGORITHM"]
