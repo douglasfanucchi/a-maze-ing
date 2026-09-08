@@ -297,3 +297,11 @@ class TestConfig:
             match="Invalid key TEST"
         ):
             config.get("TEST")
+
+    def test_should_get_seed_config_with_a_positive_value(self, config_file):
+        content = config_file.read_text()
+        config_file.write_text(content + "SEED=1\n")
+
+        config = Config(str(config_file))
+
+        assert config.get("SEED") == 1
