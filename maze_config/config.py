@@ -10,7 +10,7 @@ class Config:
     The configuration file is expected to be a plain text file with
     ``KEY=value`` lines (optionally followed by a ``# comment``), one of
     each of the required keys: ``WIDTH``, ``HEIGHT``, ``ENTRY``, ``EXIT``,
-    ``OUTPUT_FILE`` and ``PERFECT``.
+    ``OUTPUT_FILE``, ``SEED`` and ``PERFECT``.
     """
 
     def __init__(self, path: str):
@@ -33,9 +33,10 @@ class Config:
             "OUTPUT_FILE",
             "PERFECT",
         ]
-        self._valid_keys: list[str] = [
-            key for key in self._required_keys
+        self._optional_keys: list[str] = [
+            "SEED"
         ]
+        self._valid_keys: list[str] = self._required_keys + self._optional_keys
         self._values: dict[str, int | tuple[int, int] | str | bool] = {}
         self._path: str = path
         self._validate_config_file()
@@ -71,7 +72,10 @@ class Config:
             ValueError: If the key is not a valid configuration key.
         """
         if key not in self._values:
-            raise ValueError(f"Invalid key {key}")
+            if key in self._optional_keys:
+                return None
+            else:
+                raise ValueError(f"Invalid key {key}")
         return self._values[key]
 
     def _validate_config_file(self) -> None:
@@ -186,6 +190,10 @@ class Config:
             ],
             "PERFECT": [
                 lambda value: bool(match("^(True|False)$", value))
+            ],
+            "SEED": [
+                lambda value: bool(match(f"^[-]?({positive_number_regex})$", value)),
+                lambda value: bool(match(f"^[-]?(0)$", value)),
             ]
         }
 
@@ -205,3 +213,5 @@ class Config:
         self._values["EXIT"] = (int(tuple_values[0]), int(tuple_values[1]))
         self._values["OUTPUT_FILE"] = self._raw_values["OUTPUT_FILE"]
         self._values["PERFECT"] = self._raw_values["PERFECT"] == "True"
+        if "SEED" in self._raw_values:
+            self._values["SEED"] = int(self._raw_values["SEED"])
