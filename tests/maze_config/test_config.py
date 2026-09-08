@@ -305,3 +305,11 @@ class TestConfig:
         config = Config(str(config_file))
 
         assert config.get("SEED") == 1
+
+    def test_should_get_seed_config_with_zero_value(self, config_file):
+        content = config_file.read_text()
+        config_file.write_text(content + "SEED=0\n")
+
+        config = Config(str(config_file))
+
+        assert config.get("SEED") == 0
