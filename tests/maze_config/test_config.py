@@ -329,3 +329,23 @@ class TestConfig:
         config = Config(str(config_file))
 
         assert config.get("SEED") is None
+
+    @pytest.mark.parametrize(
+        "setting_value, expected",
+        [
+            ("ON", True),
+            ("OFF", False)
+        ]
+    )
+    def test_should_get_value_of_animations_option(
+        self,
+        config_file,
+        setting_value,
+        expected
+    ):
+        content = config_file.read_text()
+        config_file.write_text(content + f"ANIMATIONS={setting_value}")
+
+        config = Config(str(config_file))
+
+        assert config.get("ANIMATIONS") is expected
