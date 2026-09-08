@@ -4,6 +4,7 @@ from mazegen.generator import MazeGenerator
 from mazegen.algorithms import DFS
 from solver import Solver
 from maze_config import Config
+from mazegen.algorithms import MazeAlgorithm
 
 
 def main() -> None:
@@ -15,10 +16,14 @@ def main() -> None:
         sys.exit(1)
 
     grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
+    algorithms: dict[str, MazeAlgorithm] = {
+        "DFS": DFS(config.get("SEED")),
+    }
+    algorithm: str = config.get("ALGORITHM")
     try:
         generator = MazeGenerator(
             grid=grid,
-            algorithm=DFS(1),
+            algorithm=algorithms[algorithm],
             is_perfect=config.get("PERFECT"),
             entry_coords=config.get("ENTRY"),
             exit_coords=config.get("EXIT")
