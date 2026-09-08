@@ -349,3 +349,11 @@ class TestConfig:
         config = Config(str(config_file))
 
         assert config.get("ANIMATIONS") is expected
+
+    def test_should_get_false_when_getting_animations_wihtout_specifying_this_setting(
+        self,
+        config_file
+    ):
+        config = Config(str(config_file))
+
+        assert config.get("ANIMATIONS") is False
