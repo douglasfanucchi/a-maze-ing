@@ -18,21 +18,21 @@ class Direction(IntEnum):
         }
         return opposites[self]
 
-    @classmethod
-    def direction_vector(cls, direction: Direction) -> tuple[int, int]:
+    @property
+    def vector(self) -> tuple[int, int]:
         """Return the vector that moves a point into a certain direction"""
-        vectors: dict[Direction, tuple] = {
+        vectors: dict[Direction, tuple[int, int]] = {
             Direction.NORTH: (0, -1),
             Direction.EAST: (1, 0),
             Direction.SOUTH: (0, 1),
             Direction.WEST: (-1, 0)
         }
-        return vectors[direction]
+        return vectors[self]
 
-    @classmethod
-    def vector_direction(cls, vector: tuple[int, int]) -> Direction:
+    @staticmethod
+    def vector_direction(vector: tuple[int, int]) -> "Direction":
         """Return the direction that is associated with a vector"""
-        directions: dict[tuple, Direction] = {
+        directions: dict[tuple[int, int], Direction] = {
             (0, -1): Direction.NORTH,
             (1, 0): Direction.EAST,
             (0, 1): Direction.SOUTH,
@@ -40,8 +40,8 @@ class Direction(IntEnum):
         }
         return directions[vector]
 
-    @classmethod
-    def get_direction_label(cls, direction: Direction) -> str:
+    @property
+    def label(self) -> str:
         """
         Return the cardinal abreviation of a given direction.
         """
@@ -51,4 +51,4 @@ class Direction(IntEnum):
             Direction.SOUTH: "S",
             Direction.WEST: "W",
         }
-        return labels[direction]
+        return labels[self]
