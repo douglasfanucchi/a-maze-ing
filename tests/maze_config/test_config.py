@@ -376,3 +376,11 @@ class TestConfig:
         config = Config(str(config_file))
 
         assert config.get("ALGORITHM") == algorithm
+
+    def test_should_get_dfs_algorithm_when_setting_is_not_specified(
+        self,
+        config_file
+    ):
+        config = Config(str(config_file))
+
+        assert config.get("ALGORITHM") == "DFS"
