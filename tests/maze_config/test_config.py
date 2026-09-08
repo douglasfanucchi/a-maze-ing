@@ -321,3 +321,11 @@ class TestConfig:
         config = Config(str(config_file))
 
         assert config.get("SEED") == -1
+
+    def test_should_get_none_for_seed_when_getting_it_without_specifying_a_value(
+        self,
+        config_file
+    ):
+        config = Config(str(config_file))
+
+        assert config.get("SEED") is None
