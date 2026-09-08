@@ -64,12 +64,9 @@ class Cell:
 
     def count_walls(self) -> int:
         """
-        Count the amount of walls the cell has.
+        Count the number of active walls around the cell.
+
+        Returns:
+            The total number of walls (from 0 to 4).
         """
-        bit = 1
-        result = 0
-        for i in range(0, 4):
-            if self.walls & bit:
-                result += 1
-            bit <<= 1
-        return result
+        return self.walls.bit_count()
