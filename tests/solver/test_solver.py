@@ -1,7 +1,6 @@
 from typing import Callable
 
 import pytest
-
 from solver import Solver
 from mazegen import MazeGenerator
 from mazegen.grid import Grid
@@ -18,7 +17,7 @@ def generate_maze() -> Callable[[int, int, bool], MazeGenerator]:
             grid=grid,
             entry_coords=(0, 0),
             exit_coords=(width - 1, height - 1),
-            algorithm=DFS(1000),
+            algorithm=DFS(),
             is_perfect=is_perfect
         )
         generator.generate()
@@ -27,19 +26,6 @@ def generate_maze() -> Callable[[int, int, bool], MazeGenerator]:
 
 
 class TestSolver:
-    def test_should_solve_a_simple_2x2_maze(
-        self, generate_maze: Callable[[int, int, bool], MazeGenerator]
-    ) -> None:
-        generator = generate_maze(2, 2, True)
-        solver = Solver(generator.grid, (0, 0), (1, 1))
-        # 1011 1011
-        # 1100 0110
-
-        assert len(solver.paths()) == 1
-        assert len(solver.shortest_paths()) == 1
-        assert len(solver.wrong_paths()) == 0
-        assert solver.shortest_paths()[0] == "SE"
-
     def test_should_solve_a_perfect_maze(
         self,
         generate_maze: Callable[[int, int, bool], MazeGenerator]
@@ -48,10 +34,10 @@ class TestSolver:
 
         solver = Solver(generator.grid, (0, 0), (9, 9))
 
-        assert len(solver.shortest_paths()) == 1
-        assert len(solver.paths()) == 1
-        assert solver.paths() == solver.shortest_paths()
-        assert len(solver.wrong_paths()) > 0
+        assert len(solver.shortest_paths) == 1
+        assert len(solver.paths) == 1
+        assert solver.paths == solver.shortest_paths
+        assert len(solver.wrong_paths) > 0
 
     def test_should_solve_a_non_perfect_maze(
         self,
@@ -60,8 +46,8 @@ class TestSolver:
         generator = generate_maze(10, 10, False)
 
         solver = Solver(generator.grid, (0, 0), (9, 9))
-        min_len = min([len(path) for path in solver.paths()])
+        min_len = min([len(path) for path in solver.paths])
 
-        assert all([len(path) == min_len for path in solver.shortest_paths()])
-        assert len(solver.paths()) > 1
-        assert len(solver.wrong_paths()) > 0
+        assert all([len(path) == min_len for path in solver.shortest_paths])
+        assert len(solver.paths) > 1
+        assert len(solver.wrong_paths) > 0

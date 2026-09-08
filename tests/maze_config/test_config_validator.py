@@ -31,22 +31,25 @@ class TestConfigValidator:
         file_path.chmod(0o644)
 
     def test_should_return_false_when_file_does_not_exist(self):
-        assert ConfigValidator.file_exists("non_existing_file.txt") is False
+        validator = ConfigValidator("non_existing_file.txt")
+        assert validator.file_exists() is False
 
     def test_should_return_true_when_file_exists(self, valid_config_file):
-        assert ConfigValidator.file_exists(str(valid_config_file)) is True
+        validator = ConfigValidator(str(valid_config_file))
+        assert validator.file_exists() is True
 
     def test_should_return_true_when_file_is_readable(
         self, valid_config_file
     ):
-        assert ConfigValidator.is_readable(str(valid_config_file)) is True
+        validator = ConfigValidator(str(valid_config_file))
+        assert validator.is_readable() is True
 
     def test_should_return_false_when_file_is_not_readable(
         self, unreadable_config_file
     ):
         path = str(unreadable_config_file)
-
-        assert ConfigValidator.is_readable(path) is False
+        validator = ConfigValidator(path)
+        assert validator.is_readable() is False
 
     def test_is_valid_line_should_return_true_for_a_line_that_is_a_comment(
         self,
@@ -89,8 +92,8 @@ class TestConfigValidator:
         self, valid_config_file
     ):
         path = str(valid_config_file)
-
-        assert ConfigValidator.is_valid_file_syntax(path) is True
+        validator = ConfigValidator(path)
+        assert validator.is_valid_file_syntax() is True
 
     def test_should_check_for_invalid_line_with_double_equal_sign(self):
         assert ConfigValidator.is_valid_line("WIDTH==20") is False
