@@ -33,10 +33,13 @@ class Config:
             "OUTPUT_FILE",
             "PERFECT",
         ]
-        self._optional_keys: list[str] = [
-            "SEED"
-        ]
-        self._valid_keys: list[str] = self._required_keys + self._optional_keys
+        self._optional_keys: dict[str, None | bool | int] = {
+            "SEED": None,
+            "ANIMATIONS": False
+        }
+        self._valid_keys: list[str] = (
+            self._required_keys + list(self._optional_keys.keys())
+        )
         self._values: dict[str, int | tuple[int, int] | str | bool] = {}
         self._path: str = path
         self._validate_config_file()
@@ -73,7 +76,7 @@ class Config:
         """
         if key not in self._values:
             if key in self._optional_keys:
-                return None
+                return self._optional_keys[key]
             else:
                 raise ValueError(f"Invalid key {key}")
         return self._values[key]
@@ -194,6 +197,9 @@ class Config:
             "SEED": [
                 lambda value: bool(match(f"^[-]?({positive_number_regex})$", value)),
                 lambda value: bool(match(f"^[-]?(0)$", value)),
+            ],
+            "ANIMATIONS": [
+                lambda value: bool(match("^(ON|OFF)$", value))
             ]
         }
 
@@ -215,3 +221,5 @@ class Config:
         self._values["PERFECT"] = self._raw_values["PERFECT"] == "True"
         if "SEED" in self._raw_values:
             self._values["SEED"] = int(self._raw_values["SEED"])
+        if "ANIMATIONS" in self._raw_values:
+            self._values["ANIMATIONS"] = self._raw_values["ANIMATIONS"] == "ON"
