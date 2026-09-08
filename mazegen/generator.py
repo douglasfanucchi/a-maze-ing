@@ -4,7 +4,7 @@ from mazegen.direction import Direction
 from mazegen.cell import Cell
 
 
-class MazeGenerator():
+class MazeGenerator:
     """
     """
 
@@ -20,16 +20,17 @@ class MazeGenerator():
         """
         if entry_coords == exit_coords:
             raise ValueError("ENTRY and EXIT must be different.")
-        if entry_coords[0] >= grid.width or entry_coords[1] >= grid.height:
+        if (entry_coords[0] < 0 or entry_coords[0] >= grid.width
+                or entry_coords[1] < 0 or entry_coords[1] >= grid.height):
             raise ValueError("ENTRY coordinates are out of bounds.")
-        if exit_coords[0] >= grid.width or exit_coords[1] >= grid.height:
+        if (exit_coords[0] < 0 or exit_coords[0] >= grid.width
+                or exit_coords[1] < 0 or exit_coords[1] >= grid.height):
             raise ValueError("EXIT coordinates are out of bounds.")
         self.grid = grid
         self.algorithm = algorithm
         self.is_perfect = is_perfect
         self.entry = entry_coords
         self.exit = exit_coords
-        self.forty_two = False
 
     def generate(self) -> None:
         """Execute maze generation sequence"""
@@ -44,7 +45,7 @@ class MazeGenerator():
 
         Returns:
             A string containing maze hexadecimal representation, its dimensions
-            and the coordinates to the shortes path from entry to end.
+            and the entry and exit coordinates.
         """
         result = ""
         for y in range(0, self.grid.height):
@@ -79,8 +80,11 @@ class MazeGenerator():
 
         # Validate the grid is large enough to hold the pattern safely
         if (self.grid.width < min_width or self.grid.height < min_height):
-            return
-        self.forty_two = True
+            raise ValueError(
+                f"Grid size ({self.grid.width}x{self.grid.height})"
+                f" is too small for the 42 pattern. Minimum required: "
+                f"{min_width}x{min_height}."
+            )
         # (start_x, start_y) are the top left coordinates
         # where the 42 pattern starts
         start_x = (self.grid.width - pattern_width) // 2
@@ -104,7 +108,7 @@ class MazeGenerator():
                     if (block_x, block_y) in [self.entry, self.exit]:
                         raise ValueError(
                             "Configuration overlap: The 42 pattern "
-                            "overlaps wiith the entry or exit coordinate at "
+                            "overlaps with the entry or exit coordinate at "
                             f"({block_x}, {block_y})."
                         )
                     cell = self.grid.get_cell(block_x, block_y)
@@ -116,28 +120,23 @@ class MazeGenerator():
         """
         Create loops for a playable maze by removing dead-ends.
         """
-        for y in range(0, self.grid.height):
-            for x in range(0, self.grid.width):
-                cell = self.grid.get_cell(x, y)
+        for row in self.grid.matrix:
+            for cell in row:
                 if cell is None or cell.count_walls() != 3:
                     continue
-                direction: Direction | None = None
-                for i in range(0, 4):
-                    if self._can_break_wall(cell, Direction(1 << i)):
-                        direction = Direction(1 << i)
-                if direction is None:
-                    continue
-                new_x: int = cell.x + Direction.direction_vector(direction)[0]
-                new_y: int = cell.y + Direction.direction_vector(direction)[1]
-                to_connect = self.grid.get_cell(new_x, new_y)
-                if to_connect is None:
-                    continue
-                self.grid.connect_cells(cell, to_connect, direction)
+                for direction in Direction:
+                    if self._can_break_wall(cell, direction):
+                        dx, dy = direction.vector
+                        new_x: int = cell.x + dx
+                        new_y: int = cell.y + dy
+                        neighbor = self.grid.get_cell(new_x, new_y)
+                        if neighbor is not None:
+                            self.grid.connect_cells(cell, neighbor, direction)
+                            break
 
     def _can_break_wall(self, cell: Cell, direction: Direction) -> bool:
-        x: int = cell.x + Direction.direction_vector(direction)[0]
-        y: int = cell.y + Direction.direction_vector(direction)[1]
-        to_connect: Cell | None = self.grid.get_cell(x, y)
+        dx, dy = direction.vector
+        to_connect: Cell | None = self.grid.get_cell(cell.x + dx, cell.y + dy)
         return (
             cell.has_wall(direction) and
             to_connect is not None and
