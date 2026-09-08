@@ -1,29 +1,32 @@
 from .protocol import MazeAlgorithm
 from mazegen.grid import Grid
 from mazegen.cell import Cell
-from typing import Optional
 import random
 from collections import deque
 
 
 class DFS(MazeAlgorithm):
-    def __init__(self, seed: Optional[int] = None):
-        random.seed(seed)
-
+    """Implements a randomized Depth-First Search maze generation strategy."""
     def execute(self, grid: Grid) -> None:
+        """
+        Carve paths using a randomized DFS stack.
+
+        Args:
+            grid: The initialized grid matrix to modify.
+        """
         stack: deque[Cell] = deque()
-        cell = grid.get_cell(0, 0)
-        if cell is None:
+        start_cell = grid.get_cell(0, 0)
+        if start_cell is None:
             return
-        stack.append(cell)
-        while len(stack):
-            v = stack[-1]
-            v.visited = True
-            nodes = grid.get_unvisited_neighbors(v)
-            if len(nodes) > 0:
-                idx = random.randint(0, len(nodes) - 1)
-                w = nodes[idx][1]
-                grid.connect_cells(v, w, nodes[idx][0])
-                stack.append(w)
+        start_cell.visited = True
+        stack.append(start_cell)
+        while stack:
+            curr = stack[-1]
+            curr.visited = True
+            unvisited_neighbors = grid.get_unvisited_neighbors(curr)
+            if unvisited_neighbors:
+                direction, neighbor = random.choice(unvisited_neighbors)
+                grid.connect_cells(curr, neighbor, direction)
+                stack.append(neighbor)
             else:
                 stack.pop()
