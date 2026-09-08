@@ -357,3 +357,22 @@ class TestConfig:
         config = Config(str(config_file))
 
         assert config.get("ANIMATIONS") is False
+
+    @pytest.mark.parametrize(
+        "algorithm",
+        [
+            ("DFS"),
+            ("Prim")
+        ]
+    )
+    def test_should_get_algorithm_setting_from_config_file(
+        self,
+        algorithm,
+        config_file
+    ):
+        content = config_file.read_text()
+        config_file.write_text(content + f"ALGORITHM={algorithm}")
+
+        config = Config(str(config_file))
+
+        assert config.get("ALGORITHM") == algorithm
