@@ -47,6 +47,7 @@ class Solver:
         self._bfs()
         self._update_shortest_paths()
 
+    @property
     def paths(self) -> list[str]:
         """
         Return every complete path found from the entry to the exit.
@@ -57,6 +58,7 @@ class Solver:
         """
         return self._paths
 
+    @property
     def shortest_paths(self) -> list[str]:
         """
         Return the complete paths tied at the minimum length.
@@ -66,6 +68,7 @@ class Solver:
         """
         return self._shortest_paths
 
+    @property
     def wrong_paths(self) -> list[str]:
         """
         Return the paths that end on a dead-end instead of the exit.
@@ -76,6 +79,7 @@ class Solver:
         """
         return self._wrong_paths
 
+    @property
     def loops(self) -> list[str]:
         """
         Return the paths that reach a cell already discovered.
@@ -118,9 +122,8 @@ class Solver:
                 )
                 prev[v.y][v.x] = None
                 continue
-            for i in range(0, 4):
-                direction = Direction(1 << i)
-                vector = Direction.direction_vector(direction)
+            for direction in Direction:
+                vector = direction.vector
                 if not v.has_wall(direction):
                     next_x = v.x + vector[0]
                     next_y = v.y + vector[1]
@@ -161,9 +164,7 @@ class Solver:
                 break
             vector = (v.x - w.x, v.y - w.y)
             direction = Direction.vector_direction(vector)
-            result.append(
-                Direction.get_direction_label(direction)
-            )
+            result.append(direction.label)
             v = w
         result.reverse()
         return "".join(result)
