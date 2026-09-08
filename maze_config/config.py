@@ -94,17 +94,18 @@ class Config:
             ValueError: If the config file has invalid syntax or is
                 missing required keys.
         """
-        if not ConfigValidator.file_exists(self._path):
+        validator = ConfigValidator(self._path)
+        if not validator.file_exists():
             raise FileNotFoundError("Config file does not exist.")
-        if not ConfigValidator.is_readable(self._path):
+        if not validator.is_readable():
             raise PermissionError("Config file has no read permission.")
-        if not ConfigValidator.is_valid_file_syntax(self._path):
+        if not validator.is_valid_file_syntax():
             raise ValueError("Invalid syntax on configuration file.")
         missing_keys: list[str] = self._get_missing_required_keys()
         if len(missing_keys):
             raise ValueError(
-                f"Missing {", ".join(missing_keys)} key"
-                + f"{"s" if len(missing_keys) > 1 else ""}."
+                f"Missing {', '.join(missing_keys)} key"
+                + f"{'s' if len(missing_keys) > 1 else ''}."
             )
 
     def _get_missing_required_keys(self) -> list[str]:
@@ -114,14 +115,14 @@ class Config:
             The required keys that have no corresponding ``KEY=value``
             line in the config file.
         """
-        presented_keys = {key: False for key in self._required_keys}
+        missing_keys = {key: True for key in self._required_keys}
 
         with open(self._path, "r", encoding="utf-8") as config_file:
             for line in config_file:
-                for key in presented_keys:
+                for key in missing_keys:
                     if match(f"^{key}=[^\\s#]{{1,}}", line):
-                        presented_keys[key] = True
-            return [key for key in presented_keys if not presented_keys[key]]
+                        missing_keys[key] = False
+            return [key for key, missing in missing_keys.items() if missing]
 
     def _get_raw_values(self) -> dict[str, str]:
         """Parse each recognized key's value out of the config file.
@@ -154,68 +155,32 @@ class Config:
         Raises:
             ValueError: If any key's raw value fails all of its rules.
         """
-        positive_number_regex: str = "[1-9][0-9]{0,}"
-        rules_list: dict[str, list[Callable[[str], bool]]] = {
-            "WIDTH": [
-                lambda value: bool(match(f"^{positive_number_regex}$", value))
-            ],
-            "HEIGHT": [
-                lambda value: bool(match(f"^{positive_number_regex}$", value))
-            ],
-            "ENTRY": [
-                lambda value: bool(match("^0,0$", value)),
-                lambda value: bool(
-                    match(f"^0,{positive_number_regex}$", value)
-                ),
-                lambda value: bool(
-                    match(f"^{positive_number_regex},0$", value)
-                ),
-                lambda value: bool(match(
-                    f"^{positive_number_regex},{positive_number_regex}$",
-                    value
-                ))
-            ],
-            "EXIT": [
-                lambda value: bool(match("^0,0$", value)),
-                lambda value: bool(
-                    match(f"^0,{positive_number_regex}$", value)
-                ),
-                lambda value: bool(
-                    match(f"^{positive_number_regex},0$", value)
-                ),
-                lambda value: bool(match(
-                    f"^{positive_number_regex},{positive_number_regex}$",
-                    value
-                ))
-            ],
-            "OUTPUT_FILE": [
+        pos_num_regex: str = r"[1-9][0-9]*"
+        coordinate_regex: str = r"^(0|[1-9][0-9]*),(0|[1-9][0-9]*)$"
+        rules: dict[str, Callable[[str], bool]] = {
+            "WIDTH": lambda value: bool(match(f"^{pos_num_regex}$", value)),
+            "HEIGHT": lambda value: bool(match(f"^{pos_num_regex}$", value)),
+            "ENTRY": lambda value: bool(match(coordinate_regex, value)),
+            "EXIT": lambda value: bool(match(coordinate_regex, value)),
+            "OUTPUT_FILE":
                 lambda value: bool(
                     (path.isfile(value) and access(value, W_OK)) or
                     (not path.isfile(value)
                         and access(path.dirname(value), W_OK))
-                )
-            ],
-            "PERFECT": [
-                lambda value: bool(match("^(True|False)$", value))
-            ],
-            "SEED": [
-                lambda value: bool(
-                    match(f"^[-]?({positive_number_regex})$", value)
                 ),
-                lambda value: bool(match("^[-]?(0)$", value)),
-            ],
-            "ANIMATIONS": [
-                lambda value: bool(match("^(ON|OFF)$", value))
-            ],
-            "ALGORITHM": [
-                lambda value: bool(match("^(DFS|Prim)$", value))
-            ]
+            "PERFECT":
+                lambda value: bool(match("^(True|False)$", value)),
+            "SEED": lambda value: bool(match(r"^[-]?([1-9][0-9]*|0)$", value)),
+            "ANIMATIONS":
+                lambda value: bool(match("^(ON|OFF)$", value)),
+            "ALGORITHM":
+                lambda value: bool(match("^(DFS|Prim)$", value)),
         }
 
         for key in self._raw_values:
             value = self._raw_values[key]
-            rules = rules_list[key]
-            if not any(rule(value) for rule in rules):
+            rule = rules[key]
+            if not rule(value):
                 raise ValueError(f"Invalid value for {key} key.")
 
     def _load_values(self) -> None:
