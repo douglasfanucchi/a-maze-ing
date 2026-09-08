@@ -52,18 +52,21 @@ class Config:
     def get(self, key: Literal["WIDTH", "HEIGHT"]) -> int: ...
 
     @overload
+    def get(self, key: Literal["SEED"]) -> int | None: ...
+
+    @overload
     def get(self, key: Literal["ENTRY", "EXIT"]) -> tuple[int, int]: ...
 
     @overload
-    def get(self, key: Literal["OUTPUT_FILE"]) -> str: ...
+    def get(self, key: Literal["OUTPUT_FILE", "ALGORITHM"]) -> str: ...
 
     @overload
-    def get(self, key: Literal["PERFECT"]) -> bool: ...
+    def get(self, key: Literal["PERFECT", "ANIMATIONS"]) -> bool: ...
 
     @overload
-    def get(self, key: str) -> int | tuple[int, int] | str | bool: ...
+    def get(self, key: str) -> int | tuple[int, int] | str | bool | None: ...
 
-    def get(self, key: str) -> int | tuple[int, int] | str | bool:
+    def get(self, key: str) -> int | tuple[int, int] | str | bool | None:
         """Return the parsed value for a configuration key.
 
         Args:
@@ -196,8 +199,10 @@ class Config:
                 lambda value: bool(match("^(True|False)$", value))
             ],
             "SEED": [
-                lambda value: bool(match(f"^[-]?({positive_number_regex})$", value)),
-                lambda value: bool(match(f"^[-]?(0)$", value)),
+                lambda value: bool(
+                    match(f"^[-]?({positive_number_regex})$", value)
+                ),
+                lambda value: bool(match("^[-]?(0)$", value)),
             ],
             "ANIMATIONS": [
                 lambda value: bool(match("^(ON|OFF)$", value))
