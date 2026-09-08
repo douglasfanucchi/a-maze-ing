@@ -10,7 +10,7 @@ class Config:
     The configuration file is expected to be a plain text file with
     ``KEY=value`` lines (optionally followed by a ``# comment``), one of
     each of the required keys: ``WIDTH``, ``HEIGHT``, ``ENTRY``, ``EXIT``,
-    ``OUTPUT_FILE``, ``SEED`` and ``PERFECT``.
+    ``OUTPUT_FILE``, ``ANIMATIONS``, ``ALGORITHM``, ``SEED`` and ``PERFECT``.
     """
 
     def __init__(self, path: str):
