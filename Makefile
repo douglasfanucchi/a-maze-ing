@@ -5,17 +5,17 @@ FLAKE8 = $(VENV)/bin/flake8
 MYPY = $(VENV)/bin/mypy
 
 $(VENV)/bin/activate: requirements.txt
-	python3 -m venv $(VENV)
-	$(PIP) install -r requirements.txt
-	touch $(VENV)/bin/activate  # Update timestamp to match requirements.txt
-
+	@python3 -m venv $(VENV)
+	@$(PIP) install -r requirements.txt
+# Update timestamp to match requirements.txt
+	@touch $(VENV)/bin/activate
 install: $(VENV)/bin/activate
 
 run: install
-	$(PYTHON) a_maze_ing.py config.txt
+	@$(PYTHON) a_maze_ing.py config.txt
 
 debug: install
-	$(PYTHON) -m pdb a_maze_ing.py config.txt
+	@$(PYTHON) -m pdb a_maze_ing.py config.txt
 # n (next): Execute the current line and move to the next line in the current function.
 # s (step): Step into the function called on the current line.
 # c (continue): Resume normal program execution until it hits the next breakpoint or finishes.
@@ -24,9 +24,9 @@ debug: install
 # q (quit): Abruptly exit the debugger and terminate the program.
 
 clean:
-	rm -rf $(VENV)
-	find . -type d -name "__pycache__" -exec rm -rf {} +
-	rm -rf .mypy_cache
+	@rm -rf $(VENV)
+	@find . -type d -name "__pycache__" -exec rm -rf {} +
+	@rm -rf .mypy_cache .pytest_cache
 
 lint: install
 	@$(FLAKE8) . --exclude $(VENV),tests
@@ -43,7 +43,7 @@ lint-strict: install
 	@$(MYPY) . --strict --exclude $(VENV) --exclude tests
 
 test: install
-	$(PYTHON) -m pytest tests/
+	@$(PYTHON) -m pytest tests/
 
 test-v: install
-	$(PYTHON) -m pytest tests/ -v
+	@$(PYTHON) -m pytest tests/ -v
