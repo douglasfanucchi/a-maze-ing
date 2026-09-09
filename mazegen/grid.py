@@ -101,17 +101,8 @@ class Grid:
             and the neighbor Cell.
         """
         neighbors: list[tuple[Direction, Cell]] = []
-        # Map cardinal directions to (dx, dy) coordinate offsets
-        offsets: dict[Direction, tuple[int, int]] = {
-            Direction.NORTH: (0, -1),
-            Direction.EAST: (1, 0),
-            Direction.SOUTH: (0, 1),
-            Direction.WEST: (-1, 0),
-        }
-        for direction, (dx, dy) in offsets.items():
-            neighbor_x = cell.x + dx
-            neighbor_y = cell.y + dy
-            neighbor_cell = self.get_cell(neighbor_x, neighbor_y)
+        for direction in Direction:
+            neighbor_cell = self.get_neighbor(cell, direction)
             if (neighbor_cell is not None) and (not neighbor_cell.visited):
                 neighbors.append((direction, neighbor_cell))
         return neighbors
