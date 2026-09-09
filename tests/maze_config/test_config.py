@@ -3,6 +3,7 @@ from pathlib import Path
 from maze_config import Config
 from os.path import abspath
 
+
 class TestConfig:
     @pytest.fixture
     def config_file_with_invalid_syntax(self, tmp_path: Path):
@@ -107,7 +108,7 @@ class TestConfig:
     def test_should_instantiate_config_object_with_invalid_file(
             self,
             config_file_with_invalid_syntax
-        ):
+    ):
         with pytest.raises(ValueError):
             Config(str(config_file_with_invalid_syntax))
 
@@ -115,9 +116,10 @@ class TestConfig:
         self,
         config_file_missing_required_keys
     ):
+        required = "WIDTH, HEIGHT, ENTRY, EXIT, OUTPUT_FILE, PERFECT"
         with pytest.raises(
             ValueError,
-            match="Missing WIDTH, HEIGHT, ENTRY, EXIT, OUTPUT_FILE, PERFECT keys."
+            match=f"Missing {required} keys."
         ):
             Config(str(config_file_missing_required_keys))
 
@@ -237,7 +239,7 @@ class TestConfig:
     ):
         content = config_file.read_text().replace(
             "OUTPUT_FILE=maze.txt",
-            f"OUTPUT_FILE={str(non_writable_dir / "output.txt")}",
+            f"OUTPUT_FILE={str(non_writable_dir / 'output.txt')}",
         )
         config_file.write_text(content)
 
@@ -252,18 +254,18 @@ class TestConfig:
             self,
             config_file,
             invalid_perfect_value
-        ):
-            content = config_file.read_text().replace(
-                "PERFECT=True",
-                f"PERFECT={invalid_perfect_value}",
-            )
-            config_file.write_text(content)
+    ):
+        content = config_file.read_text().replace(
+            "PERFECT=True",
+            f"PERFECT={invalid_perfect_value}",
+        )
+        config_file.write_text(content)
 
-            with pytest.raises(
-                ValueError,
-                match="Invalid value for PERFECT key."
-            ):
-                Config(str(config_file))
+        with pytest.raises(
+            ValueError,
+            match="Invalid value for PERFECT key."
+        ):
+            Config(str(config_file))
 
     def test_should_instantiate_config_object_with_uknown_keys(
         self,
@@ -287,7 +289,7 @@ class TestConfig:
         assert config.get("ENTRY") == (0, 0)
         assert config.get("EXIT") == (19, 14)
         assert config.get("OUTPUT_FILE") == abspath("maze.txt")
-        assert config.get("PERFECT") == True
+        assert config.get("PERFECT") is True
 
     def test_should_get_invalid_key_from_config(self, config_file):
         config = Config(str(config_file))
@@ -322,7 +324,7 @@ class TestConfig:
 
         assert config.get("SEED") == -1
 
-    def test_should_get_none_for_seed_when_getting_it_without_specifying_a_value(
+    def test_should_get_none_for_seed_when_getting_it_without_specifying_value(
         self,
         config_file
     ):
@@ -350,7 +352,7 @@ class TestConfig:
 
         assert config.get("ANIMATIONS") is expected
 
-    def test_should_get_false_when_getting_animations_wihtout_specifying_this_setting(
+    def test_should_get_false_when_getting_animations_wihtout_specifying(
         self,
         config_file
     ):
