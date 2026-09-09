@@ -3,6 +3,23 @@ from mlx import Mlx
 
 
 class Image:
+    """Wrap an MLX off-screen image and expose per-pixel drawing.
+
+    Allocates an image through the MLX connection and keeps the raw pixel
+    buffer MLX handed back, so pixels can be written directly in memory
+    instead of going through the much slower per-pixel window calls. The
+    buffer is only shown once the image is pushed to a window.
+
+    Attributes:
+        _conn: The MLX connection identifier the image belongs to.
+        _mlx: The Mlx instance used to reach the underlying library.
+        _img_ptr: The identifier MLX uses to refer to this image.
+        _img_addr: A writable memoryview over the raw pixel bytes.
+        _bits_per_pixel: The number of bits one pixel occupies.
+        _bytes_per_line: The number of bytes one row of pixels occupies.
+        _endian: The pixel byte layout, 0 for B8G8R8A8, 1 for A8R8G8B8.
+    """
+
     def __init__(
         self,
         mlx: Mlx,
@@ -10,6 +27,17 @@ class Image:
         width: int,
         height: int,
     ):
+        """Create an MLX image and cache its buffer layout.
+
+        Args:
+            mlx: The Mlx instance wrapping the loaded MLX library.
+            conn: The MLX connection identifier returned by mlx_init.
+            width: The width of the image in pixels.
+            height: The height of the image in pixels.
+
+        Raises:
+            Exception: If MLX fails to allocate the image.
+        """
         self._conn = conn
         self._img_ptr = mlx.mlx_new_image(conn, width, height)
         if self._img_ptr is None:
@@ -28,17 +56,40 @@ class Image:
         self,
         x: int,
         y: int,
-        rgba: tuple[int, int, int, int]
+        argb: tuple[int, int, int, int]
     ) -> None:
+        """Write a single colored pixel into the image buffer.
+
+        The colour components are ordered to match the byte layout MLX
+        reported for this image, then written straight into the buffer.
+        Nothing reaches the screen until the image is pushed to a window.
+
+        Args:
+            x: The horizontal coordinate of the pixel, from the left edge.
+            y: The vertical coordinate of the pixel, from the top edge.
+            argb: The red, green, blue and alpha components, each in the
+                0-255 range. An alpha of 0 is fully transparent and 255
+                is fully opaque.
+        """
         bytes_per_pixel = self._bits_per_pixel // 8
         pos = x * bytes_per_pixel + y * self._bytes_per_line
-        values = [value & 0xFF for value in rgba]
-        if self._endian == 1:
+        values = [value & 0xFF for value in argb]
+        if self._endian == 0:
             values.reverse()
         for offset, value in enumerate(values):
             self._img_addr[pos + offset] = value
 
     def render_on_window(self, window_addr: Any, x: int, y: int) -> Any:
+        """Draw the current image content onto a window.
+
+        Args:
+            window_addr: The window identifier returned by mlx_new_window.
+            x: The horizontal coordinate of the image top left corner.
+            y: The vertical coordinate of the image top left corner.
+
+        Returns:
+            The status code MLX returns for the draw request.
+        """
         return self._mlx.mlx_put_image_to_window(
             self._conn,
             window_addr,
