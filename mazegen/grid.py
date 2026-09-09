@@ -3,8 +3,7 @@ from mazegen.direction import Direction
 
 
 class Grid:
-    """
-    Represents a 2D matrix of Cell objects for the maze.
+    """Represents a 2D matrix of Cell objects for the maze.
 
     Handles spatial boundaries, coordinate validation and neighbor discovery.
 
@@ -15,8 +14,7 @@ class Grid:
     """
 
     def __init__(self, width: int, height: int) -> None:
-        """
-        Initialize a Grid instance with the specified dimensions.
+        """Initialize a Grid instance with the specified dimensions.
 
         Args:
             width: The total number of columns in the grid.
@@ -33,8 +31,7 @@ class Grid:
         self.matrix: list[list[Cell]] = self.create_matrix()
 
     def create_matrix(self) -> list[list[Cell]]:
-        """
-        Generate a 2D array populated with unvisited Cell instances.
+        """Generate a 2D array populated with unvisited Cell instances.
 
         Returns:
             A nested list representing the matrix grid.
@@ -45,8 +42,7 @@ class Grid:
         return matrix
 
     def get_cell(self, x: int, y: int) -> Cell | None:
-        """
-        Retrieve a Cell safely from the matrix using its coordinates.
+        """Retrieve a Cell safely from the matrix using its coordinates.
 
         Args:
             x: The horizontal coordinate to search.
@@ -62,8 +58,7 @@ class Grid:
     def get_unvisited_neighbors(
         self, cell: Cell
     ) -> list[tuple[Direction, Cell]]:
-        """
-        Find valid, unvisited adjacent cells within the grid boundaries.
+        """Find valid, unvisited adjacent cells within the grid boundaries.
 
         Args:
             cell: The current node being processed.
@@ -91,8 +86,7 @@ class Grid:
     def connect_cells(
         self, current: Cell, neighbor: Cell, direction: Direction
     ) -> None:
-        """
-        Remove the walls between two adjacent cells bidirectionally.
+        """Remove the walls between two adjacent cells bidirectionally.
 
         Args:
             current: The starting cell node.

@@ -9,6 +9,18 @@ from mazegen.algorithms import MazeAlgorithm
 
 
 def main() -> None:
+    """Execute the maze generation and solving pipeline.
+
+    Reads the configuration file path from command-line arguments, sets the
+    global random seed, and initializes the specified generation algorithm.
+    It orchestrates the maze generation, solves for the shortest path from
+    entry to exit, and writes the hexadecimal representation and solution
+    to the configured output file.
+
+    File access issues, invalid configurations, or generation constraint
+    violations (such as grid size) are caught, printed to standard error,
+    and result in a non-zero system exit.
+    """
     if len(sys.argv) < 2:
         sys.stderr.write("Error: Too few arguments\n")
         sys.exit(1)

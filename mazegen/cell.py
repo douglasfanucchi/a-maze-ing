@@ -2,8 +2,7 @@ from mazegen.direction import Direction
 
 
 class Cell:
-    """
-    Represents a single cell node within a maze grid.
+    """Represents a single cell node within a maze grid.
 
     Tracks coordinates, wall state using a bitmask and traversal history.
 
@@ -33,8 +32,7 @@ class Cell:
         self.visited: bool = False
 
     def remove_wall(self, direction: Direction) -> None:
-        """
-        Remove a wall in the specified cardinal direction.
+        """Remove a wall in the specified cardinal direction.
 
         Args:
             direction: The cardinal direction enum corresponding to the wall.
@@ -42,8 +40,7 @@ class Cell:
         self.walls &= ~direction.value
 
     def has_wall(self, direction: Direction) -> bool:
-        """
-        Check if a wall exists in the specified direction.
+        """Check if a wall exists in the specified direction.
 
         Args:
             direction: The cardinal direction enum to verify.
@@ -54,8 +51,7 @@ class Cell:
         return bool(self.walls & direction.value)
 
     def to_hex(self) -> str:
-        """
-        Convert the wall bitmask into a single hexadecimal character.
+        """Convert the wall bitmask into a single hexadecimal character.
 
         Returns:
             A lowercase string with 1 hex char representing the cell's walls.
@@ -63,8 +59,7 @@ class Cell:
         return format(self.walls, "x")
 
     def count_walls(self) -> int:
-        """
-        Count the number of active walls around the cell.
+        """Count the number of active walls around the cell.
 
         Returns:
             The total number of walls (from 0 to 4).

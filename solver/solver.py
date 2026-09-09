@@ -5,8 +5,7 @@ from mazegen.direction import Direction
 
 
 class Solver:
-    """
-    Generate paths from entry to exit of a given maze represented by a Grid.
+    """Generate paths from entry to exit of a given maze represented by a Grid.
 
     Traverses the maze once with a breadth-first search and classifies every
     branch it walks into complete paths, shortest paths, dead-ends and loops.
@@ -29,8 +28,7 @@ class Solver:
         entry: tuple[int, int],
         exit: tuple[int, int]
     ):
-        """
-        Initiate Solver states and find paths using BFS algorithm.
+        """Initiate Solver states and find paths using BFS algorithm.
 
         Args:
             grid: The Grid containing the generated maze to traverse.
@@ -49,8 +47,7 @@ class Solver:
 
     @property
     def paths(self) -> list[str]:
-        """
-        Return every complete path found from the entry to the exit.
+        """Return every complete path found from the entry to the exit.
 
         Returns:
             A list of strings of cardinal labels, ordered from the shortest
@@ -60,8 +57,7 @@ class Solver:
 
     @property
     def shortest_paths(self) -> list[str]:
-        """
-        Return the complete paths tied at the minimum length.
+        """Return the complete paths tied at the minimum length.
 
         Returns:
             A list of strings of cardinal labels, all of the same length.
@@ -70,8 +66,7 @@ class Solver:
 
     @property
     def wrong_paths(self) -> list[str]:
-        """
-        Return the paths that end on a dead-end instead of the exit.
+        """Return the paths that end on a dead-end instead of the exit.
 
         Returns:
             A list of strings of cardinal labels, each ending on a cell
@@ -81,8 +76,7 @@ class Solver:
 
     @property
     def loops(self) -> list[str]:
-        """
-        Return the paths that reach a cell already discovered.
+        """Return the paths that reach a cell already discovered.
 
         Returns:
             A list of strings of cardinal labels, each ending on the cell
@@ -91,8 +85,7 @@ class Solver:
         return self._loops
 
     def _bfs(self) -> None:
-        """
-        Traverse the maze breadth-first and classify each branch walked.
+        """Traverse the maze breadth-first and classify each branch walked.
 
         Explores the grid from the entry cell, crossing only the sides where
         a wall was removed, and fills the internal path lists: complete paths
@@ -145,8 +138,7 @@ class Solver:
                     queue.append(w)
 
     def _backtrack_path(self, v: Cell, prev: list[list[Cell | None]]) -> str:
-        """
-        Rebuild the path walked from the entry up to a given cell.
+        """Rebuild the path walked from the entry up to a given cell.
 
         Args:
             v: The cell to backtrack from, the last step of the path.
@@ -170,8 +162,7 @@ class Solver:
         return "".join(result)
 
     def _update_shortest_paths(self) -> None:
-        """
-        Collect the complete paths that share the shortest length.
+        """Collect the complete paths that share the shortest length.
 
         Relies on the paths being stored in non-decreasing length order by
         the search, so it keeps the leading paths until a longer one is

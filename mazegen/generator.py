@@ -5,7 +5,19 @@ from mazegen.cell import Cell
 
 
 class MazeGenerator:
-    """
+    """Orchestrate the maze generation sequence and output formatting.
+
+    Manages grid initialization constraints, reserves center coordinates for
+    the 42 school pattern, delegates path carving to a strategy algorithm,
+    and handles post-processing loop generation for playable mazes.
+
+    Attributes:
+        grid (Grid): The spatial grid matrix containing cells and walls.
+        algorithm (MazeAlgorithm): The strategy instance used to carve paths.
+        is_perfect (bool): Flag determining if the maze remains a strict tree
+            or includes loops.
+        entry (tuple[int, int]): Starting coordinates (x, y).
+        exit (tuple[int, int]): Ending coordinates (x, y).
     """
 
     def __init__(
@@ -16,7 +28,19 @@ class MazeGenerator:
         algorithm: MazeAlgorithm,
         is_perfect: bool = False
     ) -> None:
-        """
+        """Initialize the maze generator with grid constraints and strategies.
+
+        Args:
+            grid: The pre-allocated grid matrix to modify.
+            entry_coords: The (x, y) coordinates where traversal begins.
+            exit_coords: The (x, y) coordinates where traversal ends.
+            algorithm: The generation strategy conforming to MazeAlgorithm.
+            is_perfect: If True, generates a single-solution tree. If False,
+                removes dead-ends to introduce loops.
+
+        Raises:
+            ValueError: If entry and exit coordinates match, or if either
+                coordinate falls outside the grid boundaries.
         """
         if entry_coords == exit_coords:
             raise ValueError("ENTRY and EXIT must be different.")
@@ -33,15 +57,14 @@ class MazeGenerator:
         self.exit = exit_coords
 
     def generate(self) -> None:
-        """Execute maze generation sequence"""
+        """Execute maze generation sequence."""
         self._reserve_42_pattern()
         self.algorithm.execute(self.grid)
         if not self.is_perfect:
             self._create_loops()
 
     def export(self) -> str:
-        """
-        Create output containing maze configuration.
+        """Create output containing maze configuration.
 
         Returns:
             A string containing maze hexadecimal representation, its dimensions
@@ -61,14 +84,12 @@ class MazeGenerator:
         return result
 
     def render(self) -> None:
-        """
-        """
+        """Generate and display a visual representation of the maze."""
         # Generates visual representation of the maze
         ...
 
     def _reserve_42_pattern(self) -> None:
-        """
-        Reserve center cells for the 42 pattern by marking them visited.
+        """Reserve center cells for the 42 pattern by marking them visited.
 
         Raises:
             ValueError: If width or height is too small to fit the 42 pattern
@@ -117,9 +138,7 @@ class MazeGenerator:
                         cell.forty_two = True
 
     def _create_loops(self) -> None:
-        """
-        Create loops for a playable maze by removing dead-ends.
-        """
+        """Create loops for a playable maze by removing dead-ends."""
         for row in self.grid.matrix:
             for cell in row:
                 if cell is None or cell.count_walls() != 3:
@@ -135,6 +154,16 @@ class MazeGenerator:
                             break
 
     def _can_break_wall(self, cell: Cell, direction: Direction) -> bool:
+        """Check if a wall can be safely broken in a given direction.
+
+        Args:
+            cell: The origin cell attempting to expand.
+            direction: The cardinal direction to check.
+
+        Returns:
+            True if a wall exists and target neighbor also exists
+            and is not part of the reserved 42 pattern, False otherwise.
+        """
         dx, dy = direction.vector
         to_connect: Cell | None = self.grid.get_cell(cell.x + dx, cell.y + dy)
         return (

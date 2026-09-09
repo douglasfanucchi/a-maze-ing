@@ -5,6 +5,11 @@ import re
 class ConfigValidator:
     """Validate the configuration file and its syntax."""
     def __init__(self, path: str) -> None:
+        """Initialize validator with a file path.
+
+        Args:
+            path: the path of the configuration file
+        """
         self.path = path
 
     def file_exists(self) -> bool:

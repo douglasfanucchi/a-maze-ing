@@ -8,8 +8,7 @@ from collections import deque
 class DFS(MazeAlgorithm):
     """Implements a randomized Depth-First Search maze generation strategy."""
     def execute(self, grid: Grid) -> None:
-        """
-        Carve paths using a randomized DFS stack.
+        """Carve paths using a randomized DFS stack.
 
         Args:
             grid: The initialized grid matrix to modify.
