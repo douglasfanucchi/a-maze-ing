@@ -11,6 +11,7 @@ class Grid:
         width: The total number of columns in the grid.
         height: The total number of rows in the grid.
         matrix: A 2D list containing the instantiated Cell objects.
+        cells_list: The flattened list version of matrix
     """
 
     def __init__(self, width: int, height: int) -> None:
@@ -28,7 +29,8 @@ class Grid:
             raise ValueError(f"Invalid dimensions: {dimensions}")
         self.width = width
         self.height = height
-        self.matrix: list[list[Cell]] = self.create_matrix()
+        self.matrix = self.create_matrix()
+        self.cells_list = [cell for row in self.matrix for cell in row]
 
     def create_matrix(self) -> list[list[Cell]]:
         """Generate a 2D array populated with unvisited Cell instances.
@@ -54,6 +56,37 @@ class Grid:
         if (not 0 <= x < self.width) or (not 0 <= y < self.height):
             return None
         return self.matrix[y][x]
+
+    def get_neighbor(self, cell: Cell, direction: Direction) -> Cell | None:
+        """Retrieve neighbor of cell in a particular direction if it exists.
+
+        Args:
+            cell: Current node from which to find neighbor
+            direction: Direction to look for neighbor
+
+        Returns:
+            The adjacent cell instance in that direction from current cell
+            if it exists, otherwise None
+        """
+        dx, dy = direction.vector
+        return self.get_cell(cell.x + dx, cell.y + dy)
+
+    def get_walls(self) -> list[tuple[Cell, Cell, Direction]]:
+        """Retrieve list of all walls separating valid cells.
+
+        Returns: A list of tuples (cell, neighbor, direction)
+        representing all internal walls excluding the 42 pattern
+        """
+        walls: list[tuple[Cell, Cell, Direction]] = []
+        for row in self.matrix:
+            for cell in row:
+                if cell.visited:
+                    continue
+                for direction in (Direction.EAST, Direction.SOUTH):
+                    neighbor = self.get_neighbor(cell, direction)
+                    if neighbor is not None and not neighbor.visited:
+                        walls.append((cell, neighbor, direction))
+        return walls
 
     def get_unvisited_neighbors(
         self, cell: Cell
