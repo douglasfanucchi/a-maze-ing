@@ -4,7 +4,7 @@ from mazegen.direction import Direction
 class Cell:
     """Represents a single cell node within a maze grid.
 
-    Tracks coordinates, wall state using a bitmask and traversal history.
+    Tracks coordinates, wall state using a bitmask, and traversal history.
 
     Attributes:
         x: Zero-based horizontal coordinate of the cell. (Starts from left)
@@ -30,6 +30,16 @@ class Cell:
         self.forty_two: bool = False
         self.walls: int = 15  # Binary 1111 (all walls closed)
         self.visited: bool = False
+
+    def __eq__(self, other: object) -> bool:
+        """Check if two cells are logically identical based on coordinates."""
+        if not isinstance(other, Cell):
+            return NotImplemented
+        return self.x == other.x and self.y == other.y
+
+    def __hash__(self) -> int:
+        """Generate a unique hash using the immutable coordinate tuple."""
+        return hash((self.x, self.y))
 
     def remove_wall(self, direction: Direction) -> None:
         """Remove a wall in the specified cardinal direction.
