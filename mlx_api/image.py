@@ -51,6 +51,9 @@ class Image:
         self._bits_per_pixel = bpp
         self._bytes_per_line = bpl
         self._endian = endian
+        for i in range(0, width):
+            for j in range(0, height):
+                self.put_pixel(i, j, (0, 0, 0, 0))
 
     def put_pixel(
         self,
