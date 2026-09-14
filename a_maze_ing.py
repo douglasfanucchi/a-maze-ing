@@ -2,7 +2,10 @@ import sys
 import random
 from mazegen.grid import Grid
 from mazegen.generator import MazeGenerator
-from mazegen.algorithms import DFS
+from mazegen.algorithms import DepthFirstSearch
+from mazegen.algorithms import HuntAndKill
+from mazegen.algorithms import Kruskal
+from mazegen.algorithms import Prim
 from solver import Solver
 from maze_config import Config
 from mazegen.algorithms import MazeAlgorithm
@@ -21,8 +24,8 @@ def main() -> None:
     violations (such as grid size) are caught, printed to standard error,
     and result in a non-zero system exit.
     """
-    if len(sys.argv) < 2:
-        sys.stderr.write("Error: Too few arguments\n")
+    if len(sys.argv) != 2:
+        sys.stderr.write("Usage: python3 a_maze_ing.py config.txt\n")
         sys.exit(1)
     try:
         config = Config(sys.argv[1])
@@ -33,7 +36,10 @@ def main() -> None:
     random.seed(config.get("SEED"))
     grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
     algorithms: dict[str, MazeAlgorithm] = {
-        "DFS": DFS(),
+        "DFS": DepthFirstSearch(),
+        "Kruskal": Kruskal(),
+        "HuntAndKill": HuntAndKill(),
+        "Prim": Prim(),
     }
     algorithm: str = config.get("ALGORITHM")
     try:
