@@ -7,8 +7,9 @@ MYPY = $(VENV)/bin/mypy
 $(VENV)/bin/activate: requirements.txt
 	@python3 -m venv $(VENV)
 	@$(PIP) install -r requirements.txt
-# Update timestamp to match requirements.txt
 	@touch $(VENV)/bin/activate
+# Update timestamp to match requirements.txt
+
 install: $(VENV)/bin/activate
 
 run: install
