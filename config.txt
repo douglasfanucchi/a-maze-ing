@@ -1,6 +1,12 @@
-WIDTH=20
-HEIGHT=15
-ENTRY=0,0
-EXIT=19,14
-OUTPUT_FILE=maze.txt
-PERFECT=True
+# Required keys
+WIDTH=20  # Number of cells (int > 0)
+HEIGHT=15  # Number of cells (int > 0)
+ENTRY=0,0  # Entry coordinates (x,y)
+EXIT=19,14  # Exit coordinates (x,y)
+OUTPUT_FILE=maze.txt  # Output filename (str)
+PERFECT=True  # Is the maze perfect? (bool)
+
+# Optional keys:
+SEED=42  # Seed for randomness reproducibility (int)
+ANIMATIONS=False  # Play animations? (bool)
+ALGORITHM=DFS  # Algorithm name (DFS|Kruskal|HuntAndKill|Prim)
