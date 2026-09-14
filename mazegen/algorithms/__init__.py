@@ -1,8 +1,14 @@
 from .protocol import MazeAlgorithm
-from .dfs import DFS
+from .dfs import DepthFirstSearch
+from .hunt_and_kill import HuntAndKill
+from .kruskal import Kruskal
+from .prim import Prim
 
 
 __all__: list[str] = [
     "MazeAlgorithm",
-    "DFS",
+    "DepthFirstSearch",
+    "HuntAndKill",
+    "Kruskal",
+    "Prim",
 ]
