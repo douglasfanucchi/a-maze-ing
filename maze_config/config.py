@@ -108,7 +108,7 @@ class Config:
         if not validator.is_valid_file_syntax():
             raise ValueError("Invalid syntax on configuration file.")
         missing_keys: list[str] = self._get_missing_required_keys()
-        if len(missing_keys):
+        if missing_keys:
             raise ValueError(
                 f"Missing {', '.join(missing_keys)} key"
                 + f"{'s' if len(missing_keys) > 1 else ''}."
@@ -163,6 +163,8 @@ class Config:
         """
         pos_num_regex: str = r"[1-9][0-9]*"
         coordinate_regex: str = r"^(0|[1-9][0-9]*),(0|[1-9][0-9]*)$"
+        algorithms_regex: str = r"^(DFS|Kruskal|HuntAndKill|Prim)$"
+        boolean_regex: str = r"^(True|False)$"
         rules: dict[str, Callable[[str], bool]] = {
             "WIDTH": lambda value: bool(match(f"^{pos_num_regex}$", value)),
             "HEIGHT": lambda value: bool(match(f"^{pos_num_regex}$", value)),
@@ -175,16 +177,15 @@ class Config:
                         and access(path.dirname(value), W_OK))
                 ),
             "PERFECT":
-                lambda value: bool(match("^(True|False)$", value)),
+                lambda value: bool(match(boolean_regex, value)),
             "SEED": lambda value: bool(match(r"^[-]?([1-9][0-9]*|0)$", value)),
             "ANIMATIONS":
-                lambda value: bool(match("^(ON|OFF)$", value)),
+                lambda value: bool(match(boolean_regex, value)),
             "ALGORITHM":
-                lambda value: bool(match("^(DFS|Prim)$", value)),
+                lambda value: bool(match(algorithms_regex, value)),
         }
 
-        for key in self._raw_values:
-            value = self._raw_values[key]
+        for key, value in self._raw_values.items():
             rule = rules[key]
             if not rule(value):
                 raise ValueError(f"Invalid value for {key} key.")
@@ -202,6 +203,7 @@ class Config:
         if "SEED" in self._raw_values:
             self._values["SEED"] = int(self._raw_values["SEED"])
         if "ANIMATIONS" in self._raw_values:
-            self._values["ANIMATIONS"] = self._raw_values["ANIMATIONS"] == "ON"
+            animations: bool = self._raw_values["ANIMATIONS"] == "True"
+            self._values["ANIMATIONS"] = animations
         if "ALGORITHM" in self._raw_values:
             self._values["ALGORITHM"] = self._raw_values["ALGORITHM"]
