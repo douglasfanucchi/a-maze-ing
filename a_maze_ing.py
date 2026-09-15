@@ -54,7 +54,7 @@ def main() -> None:
         solver = Solver(grid, config.get("ENTRY"), config.get("EXIT"))
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
-            print(solver.shortest_paths[0], file=output_file)
+            print(solver.shortest_path, file=output_file)
     except ValueError as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
