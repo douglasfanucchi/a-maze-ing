@@ -1,10 +1,10 @@
+import heapq
 import random
-from ..grid import Grid
 from ..cell import Cell
+from ..grid import Grid
 from ..direction import Direction
 from .protocol import MazeAlgorithm
-import heapq
-from ..edge import Edge
+from dataclasses import dataclass, field
 
 
 class Prim(MazeAlgorithm):
@@ -22,42 +22,44 @@ class Prim(MazeAlgorithm):
         Args:
             grid: The initialized grid matrix to modify.
         """
-        min_heap: list[Edge] = list()
-        current = grid.get_cell(0, 0)
-        if current is None:
+        start_cell = grid.get_cell(0, 0)
+        if start_cell is None:
             return
-        prev: list[list[Cell | None]] = [
-            [
-                None for _ in row
-            ] for row in grid.matrix
-        ]
-        costs: list[list[int]] = [
-            [
-                -1 for _ in row
-            ] for row in grid.matrix
-        ]
-        heapq.heappush(min_heap, Edge(-1, current))
-        while len(min_heap):
+        min_heap: list[Edge] = []
+        heapq.heappush(min_heap, Edge(weight=-1, cell=start_cell))
+        prev: dict[Cell, Cell] = {}
+        costs: dict[Cell, int] = {start_cell: -1}
+        while min_heap:
             edge = heapq.heappop(min_heap)
             current = edge.cell
             if current.visited:
                 continue
             current.visited = True
-            antecessor = prev[edge.cell.y][edge.cell.x]
-            if antecessor is not None:
-                grid.connect_cells(
-                    antecessor,
-                    current,
-                    Direction.vector_direction(
-                        (current.x - antecessor.x,
-                            current.y - antecessor.y)
-                    )
-                )
+            predecessor = prev.get(current)
+            if predecessor is not None:
+                vector = (current.x - predecessor.x, current.y - predecessor.y)
+                direction = Direction.vector_direction(vector)
+                grid.connect_cells(predecessor, current, direction)
             unvisited_neighbors = grid.get_unvisited_neighbors(current)
             for _, neighbor in unvisited_neighbors:
                 cost = random.randint(0, 100)
-                if (costs[neighbor.y][neighbor.x] == -1
-                        or cost < costs[neighbor.y][neighbor.x]):
+                if (neighbor not in costs or cost < costs[neighbor]):
+                    costs[neighbor] = cost
+                    prev[neighbor] = current
                     heapq.heappush(min_heap, Edge(cost, neighbor))
-                    prev[neighbor.y][neighbor.x] = current
-                    costs[neighbor.y][neighbor.x] = cost
+
+
+@dataclass(order=True)
+class Edge:
+    """A weighted reference to a cell, ordered by weight.
+
+    Wraps a cell together with the random cost of reaching it so that
+    instances can be stored in a min-heap. All comparisons delegate to
+    the weight; the cell itself is never part of the ordering.
+
+    Attributes:
+        weight: The cost of the edge leading to the cell.
+        cell: The cell this edge points to (ignored in comparisons).
+    """
+    weight: int
+    cell: Cell = field(compare=False)
