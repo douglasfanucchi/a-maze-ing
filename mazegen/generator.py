@@ -145,10 +145,7 @@ class MazeGenerator:
                     continue
                 for direction in Direction:
                     if self._can_break_wall(cell, direction):
-                        dx, dy = direction.vector
-                        new_x: int = cell.x + dx
-                        new_y: int = cell.y + dy
-                        neighbor = self.grid.get_cell(new_x, new_y)
+                        neighbor = self.grid.get_neighbor(cell, direction)
                         if neighbor is not None:
                             self.grid.connect_cells(cell, neighbor, direction)
                             break
@@ -164,8 +161,7 @@ class MazeGenerator:
             True if a wall exists and target neighbor also exists
             and is not part of the reserved 42 pattern, False otherwise.
         """
-        dx, dy = direction.vector
-        to_connect: Cell | None = self.grid.get_cell(cell.x + dx, cell.y + dy)
+        to_connect: Cell | None = self.grid.get_neighbor(cell, direction)
         return (
             cell.has_wall(direction) and
             to_connect is not None and
