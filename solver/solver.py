@@ -14,8 +14,8 @@ class Solver:
 
     Attributes:
         _grid: The Grid holding the maze cells and their walls.
-        _entry: The (x, y) coordinates where every path starts.
-        _exit: The (x, y) coordinates every complete path ends at.
+        _entry_coords: The (x, y) coordinates where every path starts.
+        _exit_coords: The (x, y) coordinates every complete path ends at.
         _paths: Every path found from entry to exit, shortest first.
         _shortest_paths: The subset of paths sharing the minimum length.
         _wrong_paths: Paths that end on a dead-end cell instead of the exit.
@@ -25,19 +25,19 @@ class Solver:
     def __init__(
         self,
         grid: Grid,
-        entry: tuple[int, int],
-        exit: tuple[int, int]
+        entry_coords: tuple[int, int],
+        exit_coords: tuple[int, int]
     ):
         """Initiate Solver states and find paths using BFS algorithm.
 
         Args:
             grid: The Grid containing the generated maze to traverse.
-            entry: The (x, y) coordinates where the traversal starts.
-            exit: The (x, y) coordinates the traversal targets.
+            entry_coords: The (x, y) coordinates where the traversal starts.
+            exit_coords: The (x, y) coordinates the traversal targets.
         """
         self._grid: Grid = grid
-        self._entry: tuple[int, int] = entry
-        self._exit: tuple[int, int] = exit
+        self._entry_coords: tuple[int, int] = entry_coords
+        self._exit_coords: tuple[int, int] = exit_coords
         self._paths: list[str] = []
         self._shortest_paths: list[str] = []
         self._wrong_paths: list[str] = []
@@ -93,51 +93,34 @@ class Solver:
         loops when an already discovered cell is reached again. Does nothing
         when the entry coordinates fall outside the grid.
         """
-        queue: deque[Cell] = deque()
-        cell = self._grid.get_cell(
-            self._entry[0],
-            self._entry[1],
-        )
-        if cell is None:
+        start_cell = self._grid.get_cell(*self._entry_coords)
+        if start_cell is None:
             return
-        prev: list[list[Cell | None]] = [
-            [
-                None for _ in range(0, self._grid.width)
-            ] for _ in range(0, self._grid.height)
-        ]
-        queue.append(cell)
-        prev[cell.y][cell.x] = cell
-        while len(queue):
+        queue: deque[Cell] = deque([start_cell])
+        prev: dict[Cell, Cell] = {start_cell: start_cell}
+        while queue:
             v = queue.popleft()
-            if (v.x, v.y) == self._exit:
-                self._paths.append(
-                    self._backtrack_path(v, prev)
-                )
-                prev[v.y][v.x] = None
+            if (v.x, v.y) == self._exit_coords:
+                self._paths.append(self._backtrack_path(v, prev))
+                del prev[v]
                 continue
             for direction in Direction:
-                vector = direction.vector
-                if not v.has_wall(direction):
-                    next_x = v.x + vector[0]
-                    next_y = v.y + vector[1]
-                    w = self._grid.get_cell(next_x, next_y)
-                    if w is None:
-                        continue
-                    if prev[v.y][v.x] == w:
-                        if v.count_walls() == 3:
-                            self._wrong_paths.append(
-                                self._backtrack_path(v, prev)
-                            )
-                        continue
-                    if prev[next_y][next_x] is not None:
-                        self._loops.append(
-                            self._backtrack_path(v, prev)
-                        )
-                        continue
-                    prev[w.y][w.x] = v
-                    queue.append(w)
+                if v.has_wall(direction):
+                    continue
+                w = self._grid.get_neighbor(v, direction)
+                if w is None:
+                    continue
+                if prev.get(v) == w:
+                    if v.count_walls() == 3:
+                        self._wrong_paths.append(self._backtrack_path(v, prev))
+                    continue
+                if w in prev:
+                    self._loops.append(self._backtrack_path(v, prev))
+                    continue
+                prev[w] = v
+                queue.append(w)
 
-    def _backtrack_path(self, v: Cell, prev: list[list[Cell | None]]) -> str:
+    def _backtrack_path(self, current: Cell, prev: dict[Cell, Cell]) -> str:
         """Rebuild the path walked from the entry up to a given cell.
 
         Args:
@@ -150,14 +133,14 @@ class Solver:
             entry to the given cell, ordered from the first step.
         """
         result: list[str] = []
-        while prev[v.y][v.x] != v:
-            w = prev[v.y][v.x]
-            if w is None:
+        while prev[current] != current:
+            previous = prev[current]
+            if previous is None:
                 break
-            vector = (v.x - w.x, v.y - w.y)
+            vector = (current.x - previous.x, current.y - previous.y)
             direction = Direction.vector_direction(vector)
             result.append(direction.label)
-            v = w
+            current = previous
         result.reverse()
         return "".join(result)
 
