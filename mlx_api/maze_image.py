@@ -66,6 +66,9 @@ class MazeImage:
     ):
         return self._draw_map[direction](cell, argb)
 
+    def destroy(self) -> None:
+        self.image.destroy()
+
     def _draw_top_wall(
         self,
         cell: Cell,
