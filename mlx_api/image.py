@@ -100,3 +100,12 @@ class Image:
             x,
             y
         )
+
+    def destroy(self):
+        """Release the MLX image and its pixel buffer.
+
+        Asks MLX to free the image identified by this instance. Once it
+        is destroyed, the pixel buffer is no longer valid, so the image
+        must not be drawn to, rendered or destroyed again.
+        """
+        self._mlx.mlx_destroy_image(self._conn, self._img_ptr)
