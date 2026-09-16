@@ -163,7 +163,60 @@ class MazeGenerator:
         """
         to_connect: Cell | None = self.grid.get_neighbor(cell, direction)
         return (
-            cell.has_wall(direction) and
-            to_connect is not None and
-            to_connect.forty_two is False
+            cell.has_wall(direction)
+            and to_connect is not None
+            and not to_connect.forty_two
+            and not self._would_form_3x3(cell, direction)
         )
+
+    def _would_form_3x3(self, cell: Cell, direction: Direction) -> bool:
+        """Check if breaking a wall creates a 3x3 open area.
+
+        Args:
+            cell: The origin cell.
+            direction: The direction of the wall to break.
+
+        Returns:
+            True if breaking the wall results in a 3x3 open area.
+        """
+        target = self.grid.get_neighbor(cell, direction)
+        if target is None:
+            return False
+        self.grid.connect_cells(cell, target, direction)
+        min_x = min(cell.x, target.x)
+        min_y = min(cell.y, target.y)
+        creates_3x3 = False
+        for start_x in range(min_x - 2, min_x + 1):
+            for start_y in range(min_y - 2, min_y + 1):
+                if self._is_3x3_open_at(start_x, start_y):
+                    creates_3x3 = True
+                    break
+            if creates_3x3:
+                break
+        # Restore the walls
+        cell.walls |= direction.value
+        target.walls |= direction.opposite.value
+        return creates_3x3
+
+    def _is_3x3_open_at(self, start_x: int, start_y: int) -> bool:
+        """Check if the 3x3 area starting at (start_x, start_y) has no walls.
+
+        Args:
+            start_x: The top-left X coordinate of the 3x3 area.
+            start_y: The top-left Y coordinate of the 3x3 area.
+
+        Returns:
+            True if all 9 cells exist and lack internal walls, False otherwise.
+        """
+        for x in range(start_x, start_x + 3):
+            for y in range(start_y, start_y + 3):
+                cell = self.grid.get_cell(x, y)
+                if cell is None:
+                    return False
+                # Check right (EAST) wall if not in the last column of the 3x3
+                if x < start_x + 2 and cell.has_wall(Direction.EAST):
+                    return False
+                # Check bottom (SOUTH) wall if not in the last row of the 3x3
+                if y < start_y + 2 and cell.has_wall(Direction.SOUTH):
+                    return False
+        return True
