@@ -3,3 +3,4 @@ flake8-docstrings
 mypy
 pytest
 build
+./mlx-2.2-py3-none-any.whl
