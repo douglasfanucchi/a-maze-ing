@@ -15,25 +15,18 @@ class MazeImage:
         maze: MazeGenerator,
         width: int,
         height: int,
-        background_color: tuple[int, int, int, int],
-        wall_color: tuple[int, int, int, int]
+        wall_thickness: float
     ):
-        self._conn = mlx_conn
         self._maze = maze
-        self._legend_height = 0
         self._wall_total = min(
             width // maze.grid.width,
             height // maze.grid.height
         )
         self._image = Image(mlx, mlx_conn, width, height)
-        thickness_percentage = 10
         self._wall_thickness = max(
             1,
-            (self._wall_total * thickness_percentage) // 100
+            int(self._wall_total * wall_thickness) // 100
         )
-        self._mlx = mlx
-        self._wall_color = wall_color
-        self._background_color = background_color
         self._wall_len = self._wall_total - self._wall_thickness * 2
 
     def destroy(self) -> None:
