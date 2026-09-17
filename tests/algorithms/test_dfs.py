@@ -1,4 +1,4 @@
-from mazegen.algorithms import DFS
+from mazegen.algorithms import DepthFirstSearch
 from mazegen.grid import Grid
 from mazegen.direction import Direction
 import random
@@ -8,7 +8,7 @@ class TestDFS:
     def test_should_connect_cells_on_a_2x2_grid(self):
         grid = Grid(2, 2)
         random.seed(1)
-        algo = DFS()
+        algo = DepthFirstSearch()
         algo.execute(grid)
 
         assert grid.get_cell(0, 0).has_wall(Direction.NORTH)
