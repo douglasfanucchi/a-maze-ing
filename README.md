@@ -77,63 +77,59 @@ Keys marked with * are mandatory
 
 ### **The Chosen Algorithms**
 
-While a standard implementation requires only one algorithm, this project features an **Advanced Display & Strategy Option** via the optional ALGORITHM config key. We implemented four distinct strategies:
+While a standard implementation requires only one algorithm, this project features a strategy selection via the optional ALGORITHM config key. We implemented four distinct strategies:
 
+* **Depth-First Search (DFS):** The default algorithm. Recursively carves long, winding corridors.
 * **Kruskal's Algorithm:** Uses a disjoint-set (UnionFind) data structure to organically merge a forest of disconnected paths.  
+* **Prim's Algorithm:** Grows a single minimum spanning tree outward from a starting node.  
 * **Hunt-and-Kill:** Alternates between a random walk and a linear scan, optimizing the scan by traversing a flattened 1D list of cells.  
-* **Prim's Algorithm (Default):** Grows a single minimum spanning tree outward from a starting node.  
-* **Depth-First Search (DFS):** Recursively carves long, winding corridors.
 
 ### **Why We Chose Them**
 
-We selected **Prim's Algorithm** as the primary/default strategy because it natively prevents disjoint islands, operating strictly on a frontier of active cells. By using a priority queue (min-heap) with randomized edge weights, it produces highly unpredictable, branching mazes that look organic. The addition of the other three algorithms was chosen to compare generation efficiency and visual styles, providing maximum flexibility.
+We selected DFS as the default strategy for its simplicity and because it generates a perfect maze with the fewest dead-ends of all the selected algorithms, making it ideal for converting it to a playable maze. The other three algorithms were chosen mainly to explore topics of Data Structures such as priority queues and disjoint-sets.
 
 ## **Reusable Code**
 
 The architecture was built with high cohesion and strict Object-Oriented Principles, making several components highly reusable:
 
-* **The Grid and Cell classes:** These handle standard 2D spatial awareness, bitwise wall management, and neighbor lookups. They can be reused for any grid-based game, pathfinding visualizer, or board state tracker.  
-* **The Solver class:** By leveraging hashable objects and flat dict\[Cell, Cell\] mappings instead of rigid 2D arrays, the BFS solver is completely decoupled from the generation logic. It can be dropped into any project that implements a compatible node graph to find the shortest path in $O(1)$ lookup time.
+* **The Grid and Cell classes:** These handle standard 2D spatial awareness, bitwise wall management, and neighbor lookups. They can be reused for any grid-based game, pathfinding visualizer, or board state tracker.
+* **The Maze Generator:** It is available as a standalone module that can be imported and used in other projects, such as a Pac-Man game that uses the mazes as a playable board for building the game levels. Check the [mazegen module documentation](#-mazegen-documentation) for more details.
+* **The Solver class:** By leveraging hashable objects and flat dict\[Cell, Cell\] mappings instead of rigid 2D arrays, the BFS solver is completely decoupled from the generation logic. It can be dropped into any project that implements a compatible node graph to find the shortest path in linear time.
 
 ## **Team and Project Management**
 
 ### **Roles**
 
-* **dode-lim:** Focused on the core generation algorithms (DFS, Kruskal's), configuration parsing with regex, and implementing the 42 pattern matrix reservation.  
-* **lbalderr:** Focused on the advanced pathfinding (Solver class), bitwise wall manipulation, Prim's/Hunt-and-Kill algorithms, and the localized geometric sliding windows (3x3 open area prevention).
+* **dode-lim:** Focused on  configuration parsing with regex, building the solver Class and architecturing the graphical features of the project.  
+* **lbalderr:** Focused on researching the core generation algorithms, creating core data structures (Cell, Grid) maintaining the project architecture and OOP best practices, and validating maze constraints. 
 
 ### **Planning & Evolution**
 
-Our anticipated plan was to sequentially build the grid, apply an MST algorithm, and then write a simple solver. However, the plan evolved significantly when we hit performance bottlenecks and strict edge cases. Originally, we used nested 2D matrices for path tracking, but this became cumbersome. We pivoted mid-project to refactor our Cell objects to be natively hashable, allowing us to map paths in flat dictionaries, which drastically accelerated our BFS and Prim's implementations.
+Our initial plan was to sequentially build the grid, implement generation algorithms, write a simple solver, and then generate a visualization for the mazes. However, we decided to refactor our core structures and algorithms along the way to improve the performance and maintainability of our codebase, this ended up costing us a couple extra days but the implementation sequence and task division was well preserved.
 
 ### **What Worked Well vs. What Could Be Improved**
 
-* **Worked well:** Abstracting the algorithms behind a MazeAlgorithm protocol interface allowed us to swap and test different generation strategies without breaking the main MazeGenerator.  
-* **To improve:** Early on, managing the geometric checks for loop creation caused a few recursive headaches. A more robust unit-testing suite during the initial phase would have caught the 3x3 open-area edge cases much sooner.
+* **Worked well:** Abstracting the algorithms behind a MazeAlgorithm protocol interface, and more generally keeping separation of concerns, allowed us to work on separate algorithms and files, speeding up development while minimizing merge conflicts.
+* **To improve:** A more detailed research and planning of the architecture early on could have avoided some refactors down the line.
 
 ### **Tools Used**
 
-* **Environment:** macOS with Visual Studio Code (utilizing custom keybindings and unified terminals).  
+* **Tasks & Team Management:** We used a shared Google Docs for tasks planning and frequent communication through slack when one of us couldn't be physically present at the 42 campus.  
 * **Version Control:** Git and GitHub for branch management and collaborative pair programming.  
-* **Quality Assurance:** mypy for enforcing static typing, and flake8 (with flake8-docstrings) to guarantee strict PEP 8 formatting and compliant docstrings across the entire codebase.
+* **Quality Assurance:** pytest for unit tests, along with mypy and flake8 (with flake8-docstrings) for linting and type-checking.
 
 ## **Resources**
 
-### **References**
+* [Wikipedia: Maze generation algorithm](https://en.wikipedia.org/wiki/Maze_generation_algorithm?utm_source=gemini) 
+* [Maze Generation Algorithms - An Exploration](https://professor-l.github.io/mazes/) 
+* [Maze Generation: Algorithm Recap](https://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap) 
+* *Mazes for Programmers* by Jamis Buck (Concept references for Hunt-and-Kill and Kruskal's disjoint sets). 
+* Python Official Documentation (collections.deque, heapq, dataclasses).
 
-* [Wikipedia: Maze Generation Algorithms](https://en.wikipedia.org/wiki/Maze_generation_algorithm?utm_source=gemini)  
-* *Mazes for Programmers* by Jamis Buck (Concept references for Hunt-and-Kill and Kruskal's disjoint sets).  
-* Python Official Documentation (collections.deque, heapq, re, dataclasses).
+## **AI Usage**
 
-### **AI Usage**
+Artificial Intelligence (AI) was used primarily as an architectural review and refactoring assistant throughout the project for things like:
 
-Artificial Intelligence was utilized primarily as an architectural review and refactoring assistant throughout the project:
-
-* **Memory Optimization:** Used AI to help refactor nested 2D array lookups in the BFS and Prim's solver into flat, hashable dictionaries, reducing memory footprint and improving readability.  
-* **Geometric Validations:** Assisted in mapping out the exact bounding-box arithmetic required for the sliding-window validation to prevent $3 \\times 3$ open areas.  
-* **Linting & Style:** Leveraged for formatting docstrings to perfectly comply with flake8-docstrings rules.
-
-## Resources
-* [Wikipedia](https://en.wikipedia.org/wiki/Maze_generation_algorithm)
-* [The Buckblog](https://weblog.jamisbuck.org/2011/2/7/maze-generation-algorithm-recap)
-* [Profeesor Elle](https://professor-l.github.io/mazes/)
+* **Memory Optimization:** AI was used to help refactor nested 2D array lookups in the BFS solver and generation algorithms into flat dictionaries by making the Cell class hashable, reducing memory footprint and improving readability.  
+* **Geometric Validations:** Assisted in finding counter-examples and validation to prevent $3\times3$ open areas.  
+* **Refactoring & Documentation:** Helped suggesting refactors for improving readability and generating docstrings.
