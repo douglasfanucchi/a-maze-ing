@@ -16,6 +16,7 @@ class Image:
         _img_ptr: The identifier MLX uses to refer to this image.
         _img_addr: A writable memoryview over the raw pixel bytes.
         _bits_per_pixel: The number of bits one pixel occupies.
+        _bytes_per_pixel: The number of bytes one pixel occupies.
         _bytes_per_line: The number of bytes one row of pixels occupies.
         _endian: The pixel byte layout, 0 for B8G8R8A8, 1 for A8R8G8B8.
     """
@@ -42,18 +43,16 @@ class Image:
         self._img_ptr = mlx.mlx_new_image(conn, width, height)
         if self._img_ptr is None:
             raise Exception("Undefined error occurred while creating image")
-        self._img_ptr = self._img_ptr
         self._mlx = mlx
-        addr, bpp, bpl, endian = mlx.mlx_get_data_addr(
-            self._img_ptr
-        )
-        self._img_addr = addr
-        self._bits_per_pixel = bpp
-        self._bytes_per_line = bpl
-        self._endian = endian
-        for i in range(0, width):
-            for j in range(0, height):
-                self.put_pixel(i, j, (0, 0, 0, 0))
+        (
+            self._img_addr,
+            self._bits_per_pixel,
+            self._bytes_per_line,
+            self._endian
+        ) = mlx.mlx_get_data_addr(self._img_ptr)
+        self.bytes_per_pixel = self._bits_per_pixel // 8
+        # Instantly zero out the entire buffer (transparent black)
+        self._img_addr[:] = b'\x00' * (self._bytes_per_line * height)
 
     def put_pixel(
         self,
@@ -74,13 +73,12 @@ class Image:
                 0-255 range. An alpha of 0 is fully transparent and 255
                 is fully opaque.
         """
-        bytes_per_pixel = self._bits_per_pixel // 8
-        pos = x * bytes_per_pixel + y * self._bytes_per_line
-        values = [value & 0xFF for value in argb]
+        pos = x * self.bytes_per_pixel + y * self._bytes_per_line
         if self._endian == 0:
-            values.reverse()
-        for offset, value in enumerate(values):
-            self._img_addr[pos + offset] = value
+            byte_val = bytes((argb[3], argb[2], argb[1], argb[0]))
+        else:
+            byte_val = bytes(argb)
+        self._img_addr[pos:pos+4] = byte_val
 
     def render_on_window(self, window_addr: Any, x: int, y: int) -> Any:
         """Draw the current image content onto a window.
@@ -101,7 +99,7 @@ class Image:
             y
         )
 
-    def destroy(self):
+    def destroy(self) -> None:
         """Release the MLX image and its pixel buffer.
 
         Asks MLX to free the image identified by this instance. Once it
