@@ -82,8 +82,14 @@ def main() -> None:
         )
 
         # Calculate centering logic
-        maze_pixel_width = maze_image._cell_total * generator.grid.width
-        maze_pixel_height = maze_image._cell_total * generator.grid.height
+        maze_pixel_width = (
+            maze_image._cell_total * generator.grid.width
+            + maze_image._wall_thickness * 2
+        )
+        maze_pixel_height = (
+            maze_image._cell_total * generator.grid.height
+            + maze_image._wall_thickness * 2
+        )
         padding_left = (window_width - maze_pixel_width) // 2
         padding_top = (window_height - maze_pixel_height) // 2
 

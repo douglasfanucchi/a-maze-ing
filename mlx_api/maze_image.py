@@ -46,9 +46,17 @@ class MazeImage:
         """
         self._maze = maze
         self._image = Image(mlx, mlx_conn, width, height)
-        self._cell_total = min(
+        cell_total_pre: int = min(
             width // maze.grid.width,
             height // maze.grid.height
+        )
+        wall_thickness_pre: int = max(
+            1,
+            int(cell_total_pre * wall_thickness) // 100
+        )
+        self._cell_total = min(
+            (width - wall_thickness_pre * 2) // maze.grid.width,
+            (height - wall_thickness_pre * 2) // maze.grid.height
         )
         self._wall_thickness = max(
             1,
@@ -89,6 +97,30 @@ class MazeImage:
             exit_color: ARGB color for the exit cell.
             pattern_color: ARGB color for reserved 42 pattern cells.
         """
+        # Calculate total pixel bounds of the padded maze
+        maze_w = (
+            self._maze.grid.width * self._cell_total
+            + (self._wall_thickness * 2)
+        )
+        maze_h = (
+            self._maze.grid.height * self._cell_total
+            + (self._wall_thickness * 2)
+        )
+
+        # Draw the 4 outer frame edges to seal the maze
+        self._fill_rect(0, 0, maze_w, self._wall_thickness, wall_color)
+        self._fill_rect(
+            0, maze_h - self._wall_thickness,
+            maze_w, self._wall_thickness,
+            wall_color
+        )
+        self._fill_rect(0, 0, self._wall_thickness, maze_h, wall_color)
+        self._fill_rect(
+            maze_w - self._wall_thickness, 0,
+            self._wall_thickness, maze_h,
+            wall_color
+        )
+
         for row in self._maze.grid.matrix:
             for cell in row:
                 if cell is None:
@@ -152,8 +184,8 @@ class MazeImage:
             direction: Direction of the wall segment.
             color: ARGB color to paint.
         """
-        px = coords[0] * self._cell_total
-        py = coords[1] * self._cell_total
+        px = coords[0] * self._cell_total + self._wall_thickness
+        py = coords[1] * self._cell_total + self._wall_thickness
         if direction in (Direction.NORTH, Direction.SOUTH):
             px += self._wall_thickness
             if direction == Direction.SOUTH:
@@ -189,10 +221,12 @@ class MazeImage:
         px = (
             coords[0] * self._cell_total
             + vector[0] * (self._cell_interior + self._wall_thickness)
+            + self._wall_thickness
         )
         py = (
             coords[1] * self._cell_total
             + vector[1] * (self._cell_interior + self._wall_thickness)
+            + self._wall_thickness
         )
         self._fill_rect(
             px, py, self._wall_thickness, self._wall_thickness, color
@@ -249,8 +283,8 @@ class MazeImage:
             cell: Target Cell object.
             color: ARGB color to paint.
         """
-        px = cell.x * self._cell_total + self._wall_thickness
-        py = cell.y * self._cell_total + self._wall_thickness
+        px = cell.x * self._cell_total + self._wall_thickness * 2
+        py = cell.y * self._cell_total + self._wall_thickness * 2
         self._fill_rect(
             px, py, self._cell_interior, self._cell_interior, color
         )
