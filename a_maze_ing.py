@@ -1,16 +1,14 @@
 import sys
 import random
+from typing import Any
 from mazegen.grid import Grid
 from mazegen.generator import MazeGenerator
-from mazegen.algorithms import DepthFirstSearch
-from mazegen.algorithms import HuntAndKill
-from mazegen.algorithms import Kruskal
-from mazegen.algorithms import Prim
+from mazegen.algorithms import DepthFirstSearch, HuntAndKill, Kruskal, Prim
 from solver import Solver
 from maze_config import Config
 from mazegen.algorithms import MazeAlgorithm
 from mlx import Mlx
-from mlx_api import Image, WallsImage
+from mlx_api import Image, MazeImage
 
 
 def main() -> None:
@@ -21,10 +19,6 @@ def main() -> None:
     It orchestrates the maze generation, solves for the shortest path from
     entry to exit, and writes the hexadecimal representation and solution
     to the configured output file.
-
-    File access issues, invalid configurations, or generation constraint
-    violations (such as grid size) are caught, printed to standard error,
-    and result in a non-zero system exit.
     """
     if len(sys.argv) != 2:
         sys.stderr.write("Usage: python3 a_maze_ing.py config.txt\n")
@@ -34,7 +28,6 @@ def main() -> None:
     except (PermissionError, FileNotFoundError, ValueError) as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
-
     random.seed(config.get("SEED"))
     grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
     algorithms: dict[str, MazeAlgorithm] = {
@@ -57,54 +50,74 @@ def main() -> None:
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
             print(solver.shortest_path, file=output_file)
+
+        # MLX Visualization Pipeline ------------------------------------------
         mlx = Mlx()
         conn = mlx.mlx_init()
-        dimensions = mlx.mlx_get_screen_size(conn)
-        dimension = min(int(dimensions[1] * 0.8), int(dimensions[2] * 0.8))
-        ratio = config.get("WIDTH") / config.get("HEIGHT")
-        width = min(int(ratio * dimension), dimension)
-        height = int(width / ratio)
+        _, screen_width, screen_height = mlx.mlx_get_screen_size(conn)
+        safebox_size = min(int(screen_width * 0.8), int(screen_height * 0.8))
+        aspect_ratio = config.get("WIDTH") / config.get("HEIGHT")
+        window_width = min(int(aspect_ratio * safebox_size), safebox_size)
+        window_height = int(window_width / aspect_ratio)
+        # Spawn the window slightly taller to absorb the title bar overhead
         win_ptr = mlx.mlx_new_window(
-            conn, width, height, "The Friendly Neighborhood Devs"
+            conn, window_width, window_height, "A-Maze-ing"
         )
-        color1 = (255, 43, 55, 132)
-        color2 = (255, 177, 19, 19)
+        wall_color = (255, 177, 19, 19)
+        bg_color = (255, 43, 55, 132)         # Corridor/Interior color
+        entry_color = (255, 0, 255, 0)        # Green
+        exit_color = (255, 0, 0, 0)           # Black
+        pattern_color = (255, 100, 100, 100)  # Gray
 
-        def test(keycode, param):
-            print(keycode)
-            if keycode == 65307:
+        # Initialize and draw the maze onto the off-screen buffer
+        maze_image = MazeImage(
+            mlx, conn, generator, window_width, window_height, 10.0
+        )
+        maze_image.draw_maze(
+            wall_color,
+            bg_color,
+            entry_color,
+            exit_color,
+            pattern_color
+        )
+
+        # Calculate centering logic
+        maze_pixel_width = maze_image._cell_total * generator.grid.width
+        margin_left = (window_width - maze_pixel_width) // 2
+
+        # Prepare the solid window background
+        background = Image(mlx, conn, window_width, window_height)
+        for i in range(window_width):
+            for j in range(window_height):
+                background.put_pixel(i, j, bg_color)
+
+        # Define Hooks
+        def handle_key(keycode: int, _: Any) -> None:
+            # 53 is macOS AppKit ESC, 65307 is Linux/X11 ESC
+            if keycode in (53, 65307):
                 mlx.mlx_loop_exit(conn)
-            print(param)
-        mlx.mlx_key_hook(win_ptr, test, None)
-        walls_image = WallsImage(
-            mlx,
-            conn,
-            generator,
-            width,
-            height - 20,
-            10,
-            color1,
-            color2,
-        )
-        background = Image(mlx, conn, width, height)
-        for i in range(0, width):
-            for j in range(0, height):
-                background.put_pixel(i, j, color1)
-        white_space = width - walls_image._wall_total * walls_image._maze.grid.width
-        margin_left = white_space // 2
-        background.render_on_window(win_ptr, 0, 0)
-        wall_frames = walls_image.render_frames(win_ptr, (margin_left, 0))
 
-        def frames(_):
-            next(wall_frames)
-        mlx.mlx_loop_hook(conn, frames, None)
-
-        def close(mlx: Mlx):
+        def close_window(_: Any) -> None:
             mlx.mlx_loop_exit(conn)
-        mlx.mlx_hook(win_ptr, 33, 0, close, mlx)
+
+        def render_frame(_: Any) -> None:
+            """Push the pre-rendered images to the window every tick."""
+            background.render_on_window(win_ptr, 0, 0)
+            if maze_image.image is not None:
+                maze_image.image.render_on_window(win_ptr, margin_left, 0)
+
+        # Register hooks and execute
+        mlx.mlx_key_hook(win_ptr, handle_key, None)
+        mlx.mlx_hook(win_ptr, 33, 0, close_window, None)  # 33 is DestroyNotify
+        mlx.mlx_loop_hook(conn, render_frame, None)
         mlx.mlx_loop(conn)
-        walls_image.destroy()
-        mlx.mlx_release(conn)
+
+        # Safe memory cleanup
+        mlx.mlx_destroy_window(conn, win_ptr)
+        maze_image.destroy()
+        background.destroy()
+        if hasattr(mlx, 'mlx_release'):
+            mlx.mlx_release(conn)
     except ValueError as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
