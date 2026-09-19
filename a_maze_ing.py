@@ -83,7 +83,9 @@ def main() -> None:
 
         # Calculate centering logic
         maze_pixel_width = maze_image._cell_total * generator.grid.width
-        margin_left = (window_width - maze_pixel_width) // 2
+        maze_pixel_height = maze_image._cell_total * generator.grid.height
+        padding_left = (window_width - maze_pixel_width) // 2
+        padding_top = (window_height - maze_pixel_height) // 2
 
         # Prepare the solid window background
         background = Image(mlx, conn, window_width, window_height)
@@ -104,7 +106,9 @@ def main() -> None:
             """Push the pre-rendered images to the window every tick."""
             background.render_on_window(win_ptr, 0, 0)
             if maze_image.image is not None:
-                maze_image.image.render_on_window(win_ptr, margin_left, 0)
+                maze_image.image.render_on_window(
+                    win_ptr, padding_left, padding_top
+                )
 
         # Register hooks and execute
         mlx.mlx_key_hook(win_ptr, handle_key, None)
