@@ -12,6 +12,11 @@ class PathImage(MazeImage):
     Draws on its own transparent image, meant to be layered on top of the
     walls image. The shortest path is painted cell by cell, joining each
     to the next by a rectangle inset from the walls.
+
+    Attributes:
+        _color (tuple[int, int, int, int]): ARGB color used to draw the path.
+        _shortest_path (list[Cell]): Sequence of cells forming the path.
+        _padding (int): Visual inset padding in pixels for path rectangles.
     """
 
     def __init__(
@@ -25,12 +30,24 @@ class PathImage(MazeImage):
         color: tuple[int, int, int, int],
         shortest_path: list[Cell]
     ) -> None:
-        """Create the image and store the path data the animation needs."""
+        """Create the image and store the path data the animation needs.
+
+        Args:
+            mlx (Any): The Mlx instance wrapping the loaded MLX library.
+            mlx_conn (Any): The MLX connection identifier returned by mlx_init.
+            maze (MazeGenerator): The generated maze the path belongs to.
+            width (int): The width of the image canvas in pixels.
+            height (int): The height of the image canvas in pixels.
+            wall_thickness (float): Wall thickness as percentage of cell size.
+            color (tuple[int, int, int, int]): ARGB color to paint the path.
+            shortest_path (list[Cell]): Cells sequence representing the path.
+
+        Raises:
+            Exception: If MLX fails to allocate the underlying image buffer.
+        """
         super().__init__(mlx, mlx_conn, maze, width, height, wall_thickness)
         self._color = color
-        # Safely reverse the path without modifying the original list reference
-        self._shortest_path = shortest_path[::-1]
-        # Calculate interior visual padding
+        self._shortest_path = shortest_path
         self._padding = int(0.40 * self._cell_interior)
 
     def render_frames(
