@@ -8,7 +8,7 @@ from solver import Solver
 from maze_config import Config
 from mazegen.algorithms import MazeAlgorithm
 from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
-from mlx_api import Image, MazeImage
+from mlx_api import Image, MazeImage, PathImage
 
 
 def main() -> None:
@@ -54,6 +54,12 @@ def main() -> None:
         # MLX Visualization Pipeline ------------------------------------------
         mlx = Mlx()
         conn = mlx.mlx_init()
+        if conn is None:
+            sys.stderr.write(
+                "Error: Couldn't establish a connection "
+                "with the graphical server"
+            )
+            sys.exit(1)
         _, screen_width, screen_height = mlx.mlx_get_screen_size(conn)
         safebox_size = min(int(screen_width * 0.8), int(screen_height * 0.8))
         aspect_ratio = config.get("WIDTH") / config.get("HEIGHT")
@@ -93,6 +99,24 @@ def main() -> None:
         padding_left = (window_width - maze_pixel_width) // 2
         padding_top = (window_height - maze_pixel_height) // 2
 
+        # Initialize the PathImage with the solver's shortest path
+        path_color = (255, 0, 255, 0)  # Green path
+        path_image = PathImage(
+            mlx,
+            conn,
+            generator,
+            window_width,
+            window_height,
+            10.0,
+            path_color,
+            solver.shortest_path_cells
+        )
+
+        # Initialize the generator passing the exact same offset as the maze
+        path_frames = path_image.render_frames(
+            win_ptr, (padding_left, padding_top)
+        )
+
         # Prepare the solid window background
         background = Image(mlx, conn, window_width, window_height)
         for i in range(window_width):
@@ -115,6 +139,8 @@ def main() -> None:
                 maze_image.image.render_on_window(
                     win_ptr, padding_left, padding_top
                 )
+            # Request the next frame of the path animation
+            next(path_frames)
 
         # Register hooks and execute
         mlx.mlx_key_hook(win_ptr, handle_key, None)
@@ -124,6 +150,7 @@ def main() -> None:
 
         # Safe memory cleanup
         mlx.mlx_destroy_window(conn, win_ptr)
+        path_image.destroy()
         maze_image.destroy()
         background.destroy()
         if hasattr(mlx, 'mlx_release'):

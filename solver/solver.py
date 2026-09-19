@@ -35,6 +35,7 @@ class Solver:
         self._entry_coords: tuple[int, int] = entry_coords
         self._exit_coords: tuple[int, int] = exit_coords
         self.shortest_path: str = ""
+        self.shortest_path_cells: list[Cell] = []
         self._bfs()
 
     def _bfs(self) -> None:
@@ -52,7 +53,8 @@ class Solver:
         while queue:
             v = queue.popleft()
             if (v.x, v.y) == self._exit_coords:
-                self.shortest_path = self._backtrack_path(v, prev)
+                self.shortest_path = self._backtrack_path(v, prev)[0]
+                self.shortest_path_cells = self._backtrack_path(v, prev)[1]
                 return
             for direction in Direction:
                 if v.has_wall(direction):
@@ -64,7 +66,9 @@ class Solver:
                     prev[w] = v
                     queue.append(w)
 
-    def _backtrack_path(self, current: Cell, prev: dict[Cell, Cell]) -> str:
+    def _backtrack_path(
+        self, current: Cell, prev: dict[Cell, Cell]
+    ) -> tuple[str, list[Cell]]:
         """Rebuild the path walked from the entry up to a given cell.
 
         Args:
@@ -76,12 +80,15 @@ class Solver:
             A string of cardinal labels describing each step taken from the
             entry to the given cell, ordered from the first step.
         """
-        result: list[str] = []
+        result_str: list[str] = []
+        result_cells: list[Cell] = [current]
         while prev[current] != current:
             previous = prev[current]
             vector = (current.x - previous.x, current.y - previous.y)
             direction = Direction.vector_direction(vector)
-            result.append(direction.label)
+            result_str.append(direction.label)
             current = previous
-        result.reverse()
-        return "".join(result)
+            result_cells.append(current)
+        result_str.reverse()
+        result_cells.reverse()
+        return ("".join(result_str), result_cells)
