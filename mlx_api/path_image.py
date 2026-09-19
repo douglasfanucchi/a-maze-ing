@@ -59,6 +59,15 @@ class PathImage(MazeImage):
 
         Each cell of the shortest path is one frame. Once the animation ends,
         the generator yields infinitely to keep the final state on screen.
+
+        Args:
+            win_ptr (Any): The window identifier returned by mlx_new_window.
+            coords (tuple[int, int]): The (x, y) coordinate pair representing
+                the top-left placement of the image on the window.
+
+        Yields:
+            None: Yields after pushing the updated image buffer to the window
+                for a single animation frame.
         """
         for index, cell in enumerate(self._shortest_path):
             if index < len(self._shortest_path) - 1:
@@ -83,10 +92,16 @@ class PathImage(MazeImage):
         w: Cell,
         color: tuple[int, int, int, int]
     ) -> None:
-        """Paint a rectangle joining the centers of two adjacent cells."""
+        """Paint a rectangle joining the centers of two adjacent cells.
+
+        Args:
+            v (Cell): The grid cell where the path segment starts.
+            w (Cell): The grid cell where the path segment ends.
+            color (tuple[int, int, int, int]): The ARGB color of the rectangle.
+        """
         padding = min(self._padding, (self._cell_interior - 1) // 2)
         thickness = self._cell_interior - (padding * 2)
-        # Add self._offset to align perfectly with the framed maze coordinates
+        # Add offset to align perfectly with the framed maze coordinates
         cell_offset = 2 * self._wall_thickness + padding
         v_x = v.x * self._cell_total + cell_offset
         v_y = v.y * self._cell_total + cell_offset
@@ -94,8 +109,6 @@ class PathImage(MazeImage):
         w_y = w.y * self._cell_total + cell_offset
         start_x = min(v_x, w_x)
         start_y = min(v_y, w_y)
-        # Determine dimensions based on whether
-        # the segment is horizontal or vertical
         rect_w = abs(w_x - v_x) + thickness
         rect_h = abs(w_y - v_y) + thickness
         self._fill_rect(start_x, start_y, rect_w, rect_h, color)
