@@ -125,9 +125,57 @@ def main() -> None:
 
         # Define Hooks
         def handle_key(keycode: int, _: Any) -> None:
+            # Declare the variables that will be reassigned
+            nonlocal maze_image, path_image, path_frames
+
             # 53 is macOS AppKit ESC, 65307 is Linux/X11 ESC
             if keycode in (53, 65307):
                 mlx.mlx_loop_exit(conn)
+
+            # 18 is macOS AppKit '1', 49 is Linux/X11 ASCII '1'
+            elif keycode in (18, 49):
+                # Destroy old off-screen memory buffers to prevent leaks
+                path_image.destroy()
+                maze_image.destroy()
+                # Instantiate a fresh grid and regenerate the maze
+                new_grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
+                new_generator = MazeGenerator(
+                    grid=new_grid,
+                    algorithm=algorithms[algorithm],
+                    is_perfect=config.get("PERFECT"),
+                    entry_coords=config.get("ENTRY"),
+                    exit_coords=config.get("EXIT")
+                )
+                new_generator.generate()
+                # Solve the newly generated maze
+                new_solver = Solver(
+                    new_grid, config.get("ENTRY"), config.get("EXIT")
+                )
+                # Rebuild the visual assets with the new grid data
+                maze_image = MazeImage(
+                    mlx, conn, new_generator, window_width, window_height, 10.0
+                )
+                maze_image.draw_maze(
+                    wall_color,
+                    bg_color,
+                    entry_color,
+                    exit_color,
+                    pattern_color
+                )
+                path_image = PathImage(
+                    mlx,
+                    conn,
+                    new_generator,
+                    window_width,
+                    window_height,
+                    10.0,
+                    path_color,
+                    new_solver.shortest_path_cells
+                )
+                # Reset the animation frame generator
+                path_frames = path_image.render_frames(
+                    win_ptr, (padding_left, padding_top)
+                )
 
         def close_window(_: Any) -> None:
             mlx.mlx_loop_exit(conn)
