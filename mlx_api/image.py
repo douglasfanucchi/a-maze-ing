@@ -1,5 +1,5 @@
 from typing import Any
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
 
 
 class Image:

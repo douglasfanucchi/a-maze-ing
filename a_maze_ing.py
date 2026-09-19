@@ -7,7 +7,7 @@ from mazegen.algorithms import DepthFirstSearch, HuntAndKill, Kruskal, Prim
 from solver import Solver
 from maze_config import Config
 from mazegen.algorithms import MazeAlgorithm
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
 from mlx_api import Image, MazeImage
 
 

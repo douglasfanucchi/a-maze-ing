@@ -1,6 +1,6 @@
 """Module for rendering a maze grid onto an MLX image canvas."""
 
-from mlx import Mlx
+from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
 from mazegen import MazeGenerator
 from typing import Any, Optional
 from mlx_api import Image
