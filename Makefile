@@ -29,6 +29,8 @@ clean:
 	@find . -type d -name "__pycache__" -exec rm -rf {} +
 	@rm -rf .mypy_cache .pytest_cache
 
+re: clean install
+
 lint: install
 	@$(FLAKE8) . --exclude $(VENV),tests
 	@$(MYPY) . --warn-return-any\
