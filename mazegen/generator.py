@@ -90,11 +90,6 @@ class MazeGenerator:
         result += f"{self.exit[0]},{self.exit[1]}"
         return result
 
-    def render(self) -> None:
-        """Generate and display a visual representation of the maze."""
-        # Generates visual representation of the maze
-        ...
-
     def _reserve_42_pattern(self) -> None:
         """Reserve center cells for the 42 pattern by marking them visited.
 
