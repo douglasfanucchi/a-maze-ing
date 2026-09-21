@@ -1,7 +1,7 @@
 import unittest
 from mazegen.grid import Grid
 from mazegen.direction import Direction
-from solver import Solver
+from mazegen.solver import Solver
 
 
 class TestSolver(unittest.TestCase):

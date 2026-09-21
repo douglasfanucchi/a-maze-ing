@@ -4,7 +4,6 @@ from typing import Any
 from mazegen.grid import Grid
 from mazegen.generator import MazeGenerator
 from mazegen.algorithms import DepthFirstSearch, HuntAndKill, Kruskal, Prim
-from solver import Solver
 from maze_config import Config
 from mazegen.algorithms import MazeAlgorithm
 from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
@@ -384,7 +383,6 @@ def main() -> None:
     try:
         grid, generator = get_generator(config)
         generator.generate()
-        solver = Solver(grid, config.get("ENTRY"), config.get("EXIT"))
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
             print(solver.shortest_path, file=output_file)
