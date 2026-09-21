@@ -332,14 +332,6 @@ class TestConfig:
 
         assert config.get("SEED") is None
 
-    def test_should_get_false_when_getting_animations_wihtout_specifying(
-        self,
-        config_file
-    ):
-        config = Config(str(config_file))
-
-        assert config.get("ANIMATIONS") is False
-
     @pytest.mark.parametrize(
         "algorithm",
         [

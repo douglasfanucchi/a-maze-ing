@@ -8,5 +8,4 @@ PERFECT=True  # Is the maze perfect? (bool)
 
 # Optional keys:
 SEED=42  # Seed for randomness reproducibility (int)
-ANIMATIONS=False  # Play animations? (bool)
 ALGORITHM=DFS  # Algorithm name (DFS|Kruskal|HuntAndKill|Prim)

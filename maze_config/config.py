@@ -10,7 +10,7 @@ class Config:
     The configuration file is expected to be a plain text file with
     ``KEY=value`` lines (optionally followed by a ``# comment``), one of
     each of the required keys: ``WIDTH``, ``HEIGHT``, ``ENTRY``, ``EXIT``,
-    ``OUTPUT_FILE``, ``ANIMATIONS``, ``ALGORITHM``, ``SEED`` and ``PERFECT``.
+    ``OUTPUT_FILE``, ``ALGORITHM``, ``SEED`` and ``PERFECT``.
     """
 
     def __init__(self, path: str):
@@ -35,7 +35,6 @@ class Config:
         ]
         self._optional_keys: dict[str, None | bool | int | str] = {
             "SEED": None,
-            "ANIMATIONS": False,
             "ALGORITHM": "DFS",
         }
         self._valid_keys: list[str] = (
@@ -65,7 +64,7 @@ class Config:
         ...
 
     @overload
-    def get(self, key: Literal["PERFECT", "ANIMATIONS"]) -> bool:
+    def get(self, key: Literal["PERFECT"]) -> bool:
         ...
 
     @overload
@@ -179,8 +178,6 @@ class Config:
             "PERFECT":
                 lambda value: bool(match(boolean_regex, value)),
             "SEED": lambda value: bool(match(r"^[-]?([1-9][0-9]*|0)$", value)),
-            "ANIMATIONS":
-                lambda value: bool(match(boolean_regex, value)),
             "ALGORITHM":
                 lambda value: bool(match(algorithms_regex, value)),
         }
@@ -202,8 +199,5 @@ class Config:
         self._values["PERFECT"] = self._raw_values["PERFECT"] == "True"
         if "SEED" in self._raw_values:
             self._values["SEED"] = int(self._raw_values["SEED"])
-        if "ANIMATIONS" in self._raw_values:
-            animations: bool = self._raw_values["ANIMATIONS"] == "True"
-            self._values["ANIMATIONS"] = animations
         if "ALGORITHM" in self._raw_values:
             self._values["ALGORITHM"] = self._raw_values["ALGORITHM"]

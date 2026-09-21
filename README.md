@@ -70,7 +70,6 @@ Keys marked with * are mandatory
 | OUTPUT_FILE* | Output filename                                        | OUTPUT_FILE=maze.txt |
 | PERFECT*     | Is the maze perfect? (True\|False)                     | PERFECT=False        |
 | SEED         | Seed for randomness reproducibility (int)              | SEED=42              |
-| ANIMATIONS   | Play animations? (True\|False).                        | ANIMATIONS=False     |
 | ALGORITHM    | Generation algorithm (DFS\|Kruskal\|HuntAndKill\|Prim) | ALGORITHM=DFS        |
 
 ## **Maze Generation Algorithms**
