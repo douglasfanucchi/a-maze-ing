@@ -33,6 +33,7 @@ dist/
 *.egg-info/
 *.whl
 !mlx-2.2-py3-none-any.whl
+!mazegen-*.whl
 *.tar.gz
 
 # ==========================================

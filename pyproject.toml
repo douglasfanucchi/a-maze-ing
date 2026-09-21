@@ -1,0 +1,13 @@
+[build-system]
+requires=["hatchling"]
+build-backend="hatchling.build"
+
+[project]
+name="mazegen"
+version="1.0.0"
+description="It provides a maze generator."
+requires-python = ">=3.10"
+readme = "mazegen/README.md"
+
+[tool.hatch.build.targets.wheel]
+packages = ["mazegen"]
