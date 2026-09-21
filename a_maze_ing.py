@@ -62,12 +62,8 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
     mlx = context["mlx"]
     conn = context["conn"]
 
-    # 53 is macOS AppKit ESC, 65307 is Linux/X11 ESC
-    if keycode in (53, 65307):
-        mlx.mlx_loop_exit(conn)
-
     # 18 is macOS AppKit '1', 49 is Linux/X11 ASCII '1'
-    elif keycode in (18, 49):
+    if keycode in (18, 49):
         config = context["config"]
         try:
             new_grid, new_generator = get_generator(config)
@@ -78,6 +74,8 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
         except ValueError as e:
             print(f"Regeneration failed: {e}")
             return
+        context["generator"] = new_generator
+        context["shortest_path"] = new_solver.shortest_path_cells
         # Destroy old buffers to prevent memory leaks
         context["path_image"].destroy()
         context["maze_image"].destroy()
@@ -113,6 +111,73 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
             (context["padding_left"], context["padding_top"])
         )
 
+    # 19 is macOS AppKit '2', 50 is Linux/X11 ASCII '2'
+    elif keycode in (19, 50):
+        context["show_path"] = not context["show_path"]
+
+    # 20 is macOS AppKit '3', 51 is Linux/X11 ASCII '3'
+    elif keycode in (20, 51):
+        # Shift the palette index and update current colors
+        num_colors = len(context["palettes"])
+        context["palette_idx"] = (context["palette_idx"] + 1) % num_colors
+        new_palette = context["palettes"][context["palette_idx"]]
+
+        context["wall_color"] = new_palette["wall"]
+        context["bg_color"] = new_palette["bg"]
+        context["entry_color"] = new_palette["entry"]
+        context["exit_color"] = new_palette["exit"]
+        context["pattern_color"] = new_palette["pattern"]
+        context["path_color"] = new_palette["path"]
+
+        # Destroy old buffers
+        context["path_image"].destroy()
+        context["maze_image"].destroy()
+        context["background"].destroy()
+
+        # Rebuild background
+        new_bg = Image(
+            mlx, conn, context["window_width"], context["total_window_height"]
+            )
+        for i in range(context["window_width"]):
+            for j in range(context["total_window_height"]):
+                new_bg.put_pixel(i, j, context["bg_color"])
+        context["background"] = new_bg
+
+        # Redraw maze using the existing generator from context
+        context["maze_image"] = MazeImage(
+            mlx,
+            conn,
+            context["generator"],
+            context["window_width"],
+            context["window_height"],
+            wall_thickness=10.0
+        )
+        context["maze_image"].draw_maze(
+            context["wall_color"], context["bg_color"], context["entry_color"],
+            context["exit_color"], context["pattern_color"]
+        )
+
+        # Redraw path using the existing path from context
+        context["path_image"] = PathImage(
+            mlx,
+            conn,
+            context["generator"],
+            context["window_width"],
+            context["window_height"],
+            wall_thickness=10.0,
+            color=context["path_color"],
+            shortest_path=context["shortest_path"]
+        )
+        context["path_frames"] = context["path_image"].render_frames(
+            context["win_ptr"],
+            (context["padding_left"], context["padding_top"])
+        )
+
+    # 53 is macOS AppKit ESC, 65307 is Linux/X11 ESC
+    # 21 is macOS AppKit '4', 51 is Linux/X11 ASCII '4'
+    elif keycode in (53, 65307, 21, 52):
+        mlx.mlx_loop_exit(conn)
+
 
 def visualization_pipeline(
     config: Config, generator: MazeGenerator, solver: Solver
@@ -145,26 +210,55 @@ def visualization_pipeline(
     aspect_ratio = config.get("WIDTH") / config.get("HEIGHT")
     window_width = min(int(aspect_ratio * safebox_size), safebox_size)
     window_height = int(window_width / aspect_ratio)
-    # Spawn the window slightly taller to absorb the title bar overhead
+    footer_height = 40
+    total_window_height = window_height + footer_height
     win_ptr = mlx.mlx_new_window(
-        conn, window_width, window_height, "A-Maze-ing"
+        conn, window_width, total_window_height, "A-Maze-ing"
     )
-    wall_color = (255, 177, 19, 19)
-    bg_color = (255, 43, 55, 132)         # Corridor/Interior color
-    entry_color = (255, 0, 255, 0)        # Green
-    exit_color = (255, 0, 0, 0)           # Black
-    pattern_color = (255, 100, 100, 100)  # Gray
+    palettes = [
+        {
+            "wall": (255, 177, 19, 19),
+            "bg": (255, 43, 55, 132),
+            "entry": (255, 255, 255, 255),
+            "exit": (255, 0, 0, 0),
+            "pattern": (255, 100, 100, 100),
+            "path": (255, 255, 255, 255),
+        },
+        {
+            "wall": (255, 23, 0, 255),
+            "bg": (255, 0, 0, 0),
+            "entry": (255, 255, 255, 11),
+            "exit": (255, 251, 0, 7),
+            "pattern": (255, 255, 255, 255),
+            "path": (255, 255, 255, 11),
+        },
+        {
+            "wall": (255, 0, 255, 0),
+            "bg": (255, 10, 10, 10),
+            "entry": (255, 0, 200, 255),
+            "exit": (255, 255, 0, 50),
+            "pattern": (255, 20, 50, 20),
+            "path": (255, 255, 255, 0),
+        }
+    ]
+
+    # Prepare the solid window background
+    background = Image(mlx, conn, window_width, total_window_height)
+    for i in range(window_width):
+        for j in range(total_window_height):
+            background.put_pixel(i, j, palettes[0]["bg"])
+    endian = background._endian
 
     # Initialize and draw the maze onto the off-screen buffer
     maze_image = MazeImage(
         mlx, conn, generator, window_width, window_height, 10.0
     )
     maze_image.draw_maze(
-        wall_color,
-        bg_color,
-        entry_color,
-        exit_color,
-        pattern_color
+        wall_color=palettes[0]["wall"],
+        bg_color=palettes[0]["bg"],
+        entry_color=palettes[0]["entry"],
+        exit_color=palettes[0]["exit"],
+        pattern_color=palettes[0]["pattern"]
     )
 
     # Calculate centering logic
@@ -180,7 +274,7 @@ def visualization_pipeline(
     padding_top = (window_height - maze_pixel_height) // 2
 
     # Initialize the PathImage with the solver's shortest path
-    path_color = (255, 0, 255, 0)  # Green path
+    path_color = palettes[0]["path"]
     path_image = PathImage(
         mlx,
         conn,
@@ -203,40 +297,56 @@ def visualization_pipeline(
             "conn": conn,
             "win_ptr": win_ptr,
             "config": config,
+            "generator": generator,
+            "shortest_path": solver.shortest_path_cells,
             "window_width": window_width,
             "window_height": window_height,
+            "total_window_height": total_window_height,
             "padding_left": padding_left,
             "padding_top": padding_top,
-            "wall_color": wall_color,
-            "bg_color": bg_color,
-            "entry_color": entry_color,
-            "exit_color": exit_color,
-            "pattern_color": pattern_color,
-            "path_color": path_color,
+            "endian": endian,
+            "palettes": palettes,
+            "palette_idx": 0,
+            "background": background,
+            "wall_color": palettes[0]["wall"],
+            "bg_color": palettes[0]["bg"],
+            "entry_color": palettes[0]["entry"],
+            "exit_color": palettes[0]["exit"],
+            "pattern_color": palettes[0]["pattern"],
+            "path_color": palettes[0]["path"],
             "maze_image": maze_image,
             "path_image": path_image,
             "path_frames": path_frames,
+            "show_path": True,
         }
-
-    # Prepare the solid window background
-    background = Image(mlx, conn, window_width, window_height)
-    for i in range(window_width):
-        for j in range(window_height):
-            background.put_pixel(i, j, bg_color)
 
     def close_window(_: Any) -> None:
         mlx.mlx_loop_exit(conn)
 
     def render_frame(_: Any) -> None:
         """Push the pre-rendered images to the window every tick."""
-        background.render_on_window(win_ptr, 0, 0)
+        context["background"].render_on_window(win_ptr, 0, 0)
         current_maze = context["maze_image"]
         if current_maze.image is not None:
             current_maze.image.render_on_window(
                 win_ptr, padding_left, padding_top
             )
-        # Request the next frame of the path animation
-        next(context["path_frames"])
+        if context["show_path"]:
+            next(context["path_frames"])
+        # Convert tuple (A, R, G, B) to 32-bit integer
+        _, r, g, b = context["wall_color"]
+        if context["endian"] == 0:
+            text_color = (b << 16) | (g << 8) | r
+        else:
+            text_color = (r << 16) | (g << 8) | b
+        # Position the text inside the footer area
+        x_pos = 25
+        y_pos = context["total_window_height"] - 25
+        legend = "1: regen    2: path    3: color    4: quit"
+        context["mlx"].mlx_string_put(
+            context["conn"], context["win_ptr"],
+            x_pos, y_pos, text_color, legend
+        )
 
     # Register hooks and execute
     mlx.mlx_key_hook(win_ptr, handle_key, context)
@@ -248,7 +358,7 @@ def visualization_pipeline(
     mlx.mlx_destroy_window(conn, win_ptr)
     context["path_image"].destroy()
     context["maze_image"].destroy()
-    background.destroy()
+    context["background"].destroy()
     if hasattr(mlx, 'mlx_release'):
         mlx.mlx_release(conn)
 
