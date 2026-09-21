@@ -67,14 +67,11 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
         try:
             new_grid, new_generator = get_generator(config)
             new_generator.generate()
-            new_solver = Solver(
-                new_grid, config.get("ENTRY"), config.get("EXIT")
-            )
         except ValueError as e:
             print(f"Regeneration failed: {e}")
             return
         context["generator"] = new_generator
-        context["shortest_path"] = new_solver.shortest_path_cells
+        context["shortest_path"] = new_generator.shortest_path_cells
         # Destroy old buffers to prevent memory leaks
         context["path_image"].destroy()
         context["maze_image"].destroy()
@@ -102,7 +99,7 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
             context["window_height"],
             10.0,
             context["path_color"],
-            new_solver.shortest_path_cells
+            new_generator.shortest_path_cells
         )
         # Reset the animation frame generator
         context["path_frames"] = context["path_image"].render_frames(
@@ -178,9 +175,7 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
         mlx.mlx_loop_exit(conn)
 
 
-def visualization_pipeline(
-    config: Config, generator: MazeGenerator, solver: Solver
-) -> None:
+def visualization_pipeline(config: Config, generator: MazeGenerator) -> None:
     """Execute the MLX graphical rendering and interactive event loop.
 
     Sets up the MLX window dimensions, draws the static maze layout to an
@@ -193,8 +188,6 @@ def visualization_pipeline(
             and logic parameters.
         generator (MazeGenerator): The generator holding the fully carved grid
             structure.
-        solver (Solver): The solver instance containing the sequence of cells
-            that make up the shortest path.
     """
     mlx = Mlx()
     conn = mlx.mlx_init()
@@ -272,7 +265,7 @@ def visualization_pipeline(
     padding_left = (window_width - maze_pixel_width) // 2
     padding_top = (window_height - maze_pixel_height) // 2
 
-    # Initialize the PathImage with the solver's shortest path
+    # Initialize the PathImage with the shortest path
     path_color = palettes[0]["path"]
     path_image = PathImage(
         mlx,
@@ -282,7 +275,7 @@ def visualization_pipeline(
         window_height,
         10.0,
         path_color,
-        solver.shortest_path_cells
+        generator.shortest_path_cells
     )
 
     # Initialize the generator passing the exact same offset as the maze
@@ -297,7 +290,7 @@ def visualization_pipeline(
             "win_ptr": win_ptr,
             "config": config,
             "generator": generator,
-            "shortest_path": solver.shortest_path_cells,
+            "shortest_path": generator.shortest_path_cells,
             "window_width": window_width,
             "window_height": window_height,
             "total_window_height": total_window_height,
@@ -385,8 +378,8 @@ def main() -> None:
         generator.generate()
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
-            print(solver.shortest_path, file=output_file)
-        visualization_pipeline(config, generator, solver)
+            print(generator.shortest_path, file=output_file)
+        visualization_pipeline(config, generator)
     except (ValueError, OSError) as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
