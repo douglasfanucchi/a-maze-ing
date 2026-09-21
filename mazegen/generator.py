@@ -54,7 +54,8 @@ class MazeGenerator:
         if (exit_coords[0] < 0 or exit_coords[0] >= grid.width
                 or exit_coords[1] < 0 or exit_coords[1] >= grid.height):
             raise ValueError("EXIT coordinates are out of bounds.")
-        seed(seed_value)
+        if seed_value is not None:
+            seed(seed_value)
         self.grid = grid
         self.algorithm = algorithm
         self.is_perfect = is_perfect
