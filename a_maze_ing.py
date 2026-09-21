@@ -12,6 +12,21 @@ from mlx_api import Image, MazeImage, PathImage
 
 
 def get_generator(config: Config) -> tuple[Grid, MazeGenerator]:
+    """Initialize the grid and maze generator from the given configuration.
+
+    Args:
+        config (Config): The configuration object containing
+        the maze dimensions, algorithm choice, perfect/imperfect flag
+        and start/exit coordinates.
+
+    Returns:
+        tuple[Grid, MazeGenerator]: A tuple containing the newly created empty
+        grid and the configured maze generator ready to carve it.
+
+    Raises:
+        ValueError: If the entry or exit coordinates are invalid or fall
+        outside the grid boundaries.
+    """
     grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
     algorithms: dict[str, MazeAlgorithm] = {
         "DFS": DepthFirstSearch(),
@@ -31,7 +46,19 @@ def get_generator(config: Config) -> tuple[Grid, MazeGenerator]:
 
 
 def handle_key(keycode: int, context: dict[str, Any]) -> None:
-    """Handle keyboard interactions and runtime maze regeneration."""
+    """Handle keyboard interactions and runtime maze regeneration.
+
+    Listens for specific keystrokes to either close the MLX window gracefully
+    (ESC) or dynamically generate, solve, and render a brand-new maze ('1').
+    It manages memory safely by destroying old image buffers before rendering
+    the new state.
+
+    Args:
+        keycode (int): The hardware-specific integer code of the key pressed.
+        context (dict[str, Any]): The shared mutable state dictionary
+        containing MLX connection pointers, color profiles, configuration data
+        and the active image objects.
+    """
     mlx = context["mlx"]
     conn = context["conn"]
 
@@ -90,6 +117,21 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
 def visualization_pipeline(
     config: Config, generator: MazeGenerator, solver: Solver
 ) -> None:
+    """Execute the MLX graphical rendering and interactive event loop.
+
+    Sets up the MLX window dimensions, draws the static maze layout to an
+    off-screen buffer, and initializes the pathfinding animation. It packs the
+    runtime state into a context dictionary for the event hooks and launches
+    the infinite rendering loop.
+
+    Args:
+        config (Config): The configuration object defining the maze dimensions
+            and logic parameters.
+        generator (MazeGenerator): The generator holding the fully carved grid
+            structure.
+        solver (Solver): The solver instance containing the sequence of cells
+            that make up the shortest path.
+    """
     mlx = Mlx()
     conn = mlx.mlx_init()
     if conn is None:
