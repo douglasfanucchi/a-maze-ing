@@ -4,7 +4,6 @@ from typing import Any
 from mazegen.grid import Grid
 from mazegen.generator import MazeGenerator
 from mazegen.algorithms import DepthFirstSearch, HuntAndKill, Kruskal, Prim
-from solver import Solver
 from maze_config import Config
 from mazegen.algorithms import MazeAlgorithm
 from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
@@ -46,10 +45,9 @@ def main() -> None:
             exit_coords=config.get("EXIT")
         )
         generator.generate()
-        solver = Solver(grid, config.get("ENTRY"), config.get("EXIT"))
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
-            print(solver.shortest_path, file=output_file)
+            print(generator.shortest_path, file=output_file)
 
         # MLX Visualization Pipeline ------------------------------------------
         mlx = Mlx()
@@ -109,7 +107,7 @@ def main() -> None:
             window_height,
             10.0,
             path_color,
-            solver.shortest_path_cells
+            generator.shortest_path_cells
         )
 
         # Initialize the generator passing the exact same offset as the maze

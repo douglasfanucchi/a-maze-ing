@@ -2,6 +2,7 @@ from mazegen.grid import Grid
 from mazegen.algorithms.protocol import MazeAlgorithm
 from mazegen.direction import Direction
 from mazegen.cell import Cell
+from .solver import Solver
 
 
 class MazeGenerator:
@@ -55,6 +56,7 @@ class MazeGenerator:
         self.is_perfect = is_perfect
         self.entry = entry_coords
         self.exit = exit_coords
+        self._solver: Solver | None = None
 
     def generate(self) -> None:
         """Execute maze generation sequence."""
@@ -62,6 +64,11 @@ class MazeGenerator:
         self.algorithm.execute(self.grid)
         if not self.is_perfect:
             self._create_loops()
+        self._solver = Solver(
+            self.grid,
+            self.entry,
+            self.exit
+        )
 
     def export(self) -> str:
         """Create output containing maze configuration.
@@ -220,3 +227,34 @@ class MazeGenerator:
                 if y < start_y + 2 and cell.has_wall(Direction.SOUTH):
                     return False
         return True
+
+    @property
+    def shortest_path(self) -> str:
+        """Get the shortest path from entry to exit as cardinal directions.
+
+        Returns:
+            A string of cardinal labels ("N", "E", "S", "W"), each character
+            being one step taken from the entry cell, ordered from the first
+            step.
+
+        Raises:
+            Exception: If the `generate` method was not called beforehand.
+        """
+        if self._solver is None:
+            raise Exception("Maze `generate` method was not called")
+        return self._solver.shortest_path
+
+    @property
+    def shortest_path_cells(self) -> list[Cell]:
+        """Get the cells crossed by the shortest path from entry to exit.
+
+        Returns:
+            The list of Cell objects visited along the shortest path, ordered
+            from the entry cell to the exit cell (both included).
+
+        Raises:
+            Exception: If the `generate` method was not called beforehand.
+        """
+        if self._solver is None:
+            raise Exception("Maze `generate` method was not called")
+        return self._solver.shortest_path_cells
