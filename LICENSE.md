@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2026 Douglas Fanucchi
+Copyright (c) 2026 Douglas Fanucchi, Lucas Paiva
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
