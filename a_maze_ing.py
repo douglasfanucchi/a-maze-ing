@@ -11,6 +11,206 @@ from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
 from mlx_api import Image, MazeImage, PathImage
 
 
+def get_generator(config: Config) -> tuple[Grid, MazeGenerator]:
+    grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
+    algorithms: dict[str, MazeAlgorithm] = {
+        "DFS": DepthFirstSearch(),
+        "Kruskal": Kruskal(),
+        "HuntAndKill": HuntAndKill(),
+        "Prim": Prim(),
+    }
+    algorithm: str = config.get("ALGORITHM")
+    generator = MazeGenerator(
+        grid=grid,
+        algorithm=algorithms[algorithm],
+        is_perfect=config.get("PERFECT"),
+        entry_coords=config.get("ENTRY"),
+        exit_coords=config.get("EXIT")
+    )
+    return (grid, generator)
+
+
+def handle_key(keycode: int, context: dict[str, Any]) -> None:
+    """Handle keyboard interactions and runtime maze regeneration."""
+    mlx = context["mlx"]
+    conn = context["conn"]
+
+    # 53 is macOS AppKit ESC, 65307 is Linux/X11 ESC
+    if keycode in (53, 65307):
+        mlx.mlx_loop_exit(conn)
+
+    # 18 is macOS AppKit '1', 49 is Linux/X11 ASCII '1'
+    elif keycode in (18, 49):
+        config = context["config"]
+        try:
+            new_grid, new_generator = get_generator(config)
+            new_generator.generate()
+            new_solver = Solver(
+                new_grid, config.get("ENTRY"), config.get("EXIT")
+            )
+        except ValueError as e:
+            print(f"Regeneration failed: {e}")
+            return
+        # Destroy old buffers to prevent memory leaks
+        context["path_image"].destroy()
+        context["maze_image"].destroy()
+        # Rebuild visual assets and store them back in the context dictionary
+        context["maze_image"] = MazeImage(
+            mlx,
+            conn,
+            new_generator,
+            context["window_width"],
+            context["window_height"],
+            10.0
+        )
+        context["maze_image"].draw_maze(
+            context["wall_color"],
+            context["bg_color"],
+            context["entry_color"],
+            context["exit_color"],
+            context["pattern_color"]
+        )
+        context["path_image"] = PathImage(
+            mlx,
+            conn,
+            new_generator,
+            context["window_width"],
+            context["window_height"],
+            10.0,
+            context["path_color"],
+            new_solver.shortest_path_cells
+        )
+        # Reset the animation frame generator
+        context["path_frames"] = context["path_image"].render_frames(
+            context["win_ptr"],
+            (context["padding_left"], context["padding_top"])
+        )
+
+
+def visualization_pipeline(
+    config: Config, generator: MazeGenerator, solver: Solver
+) -> None:
+    mlx = Mlx()
+    conn = mlx.mlx_init()
+    if conn is None:
+        sys.stderr.write(
+            "Error: Couldn't establish a connection "
+            "with the graphical server"
+        )
+        sys.exit(1)
+    _, screen_width, screen_height = mlx.mlx_get_screen_size(conn)
+    safebox_size = min(int(screen_width * 0.8), int(screen_height * 0.8))
+    aspect_ratio = config.get("WIDTH") / config.get("HEIGHT")
+    window_width = min(int(aspect_ratio * safebox_size), safebox_size)
+    window_height = int(window_width / aspect_ratio)
+    # Spawn the window slightly taller to absorb the title bar overhead
+    win_ptr = mlx.mlx_new_window(
+        conn, window_width, window_height, "A-Maze-ing"
+    )
+    wall_color = (255, 177, 19, 19)
+    bg_color = (255, 43, 55, 132)         # Corridor/Interior color
+    entry_color = (255, 0, 255, 0)        # Green
+    exit_color = (255, 0, 0, 0)           # Black
+    pattern_color = (255, 100, 100, 100)  # Gray
+
+    # Initialize and draw the maze onto the off-screen buffer
+    maze_image = MazeImage(
+        mlx, conn, generator, window_width, window_height, 10.0
+    )
+    maze_image.draw_maze(
+        wall_color,
+        bg_color,
+        entry_color,
+        exit_color,
+        pattern_color
+    )
+
+    # Calculate centering logic
+    maze_pixel_width = (
+        maze_image._cell_total * generator.grid.width
+        + maze_image._wall_thickness * 2
+    )
+    maze_pixel_height = (
+        maze_image._cell_total * generator.grid.height
+        + maze_image._wall_thickness * 2
+    )
+    padding_left = (window_width - maze_pixel_width) // 2
+    padding_top = (window_height - maze_pixel_height) // 2
+
+    # Initialize the PathImage with the solver's shortest path
+    path_color = (255, 0, 255, 0)  # Green path
+    path_image = PathImage(
+        mlx,
+        conn,
+        generator,
+        window_width,
+        window_height,
+        10.0,
+        path_color,
+        solver.shortest_path_cells
+    )
+
+    # Initialize the generator passing the exact same offset as the maze
+    path_frames = path_image.render_frames(
+        win_ptr, (padding_left, padding_top)
+    )
+
+    # Pack the mutable state into a dictionary
+    context: dict[str, Any] = {
+            "mlx": mlx,
+            "conn": conn,
+            "win_ptr": win_ptr,
+            "config": config,
+            "window_width": window_width,
+            "window_height": window_height,
+            "padding_left": padding_left,
+            "padding_top": padding_top,
+            "wall_color": wall_color,
+            "bg_color": bg_color,
+            "entry_color": entry_color,
+            "exit_color": exit_color,
+            "pattern_color": pattern_color,
+            "path_color": path_color,
+            "maze_image": maze_image,
+            "path_image": path_image,
+            "path_frames": path_frames,
+        }
+
+    # Prepare the solid window background
+    background = Image(mlx, conn, window_width, window_height)
+    for i in range(window_width):
+        for j in range(window_height):
+            background.put_pixel(i, j, bg_color)
+
+    def close_window(_: Any) -> None:
+        mlx.mlx_loop_exit(conn)
+
+    def render_frame(_: Any) -> None:
+        """Push the pre-rendered images to the window every tick."""
+        background.render_on_window(win_ptr, 0, 0)
+        current_maze = context["maze_image"]
+        if current_maze.image is not None:
+            current_maze.image.render_on_window(
+                win_ptr, padding_left, padding_top
+            )
+        # Request the next frame of the path animation
+        next(context["path_frames"])
+
+    # Register hooks and execute
+    mlx.mlx_key_hook(win_ptr, handle_key, context)
+    mlx.mlx_hook(win_ptr, 33, 0, close_window, None)  # 33 is DestroyNotify
+    mlx.mlx_loop_hook(conn, render_frame, context)
+    mlx.mlx_loop(conn)
+
+    # Clean up memory using the final dictionary states
+    mlx.mlx_destroy_window(conn, win_ptr)
+    context["path_image"].destroy()
+    context["maze_image"].destroy()
+    background.destroy()
+    if hasattr(mlx, 'mlx_release'):
+        mlx.mlx_release(conn)
+
+
 def main() -> None:
     """Execute the maze generation and solving pipeline.
 
@@ -29,181 +229,15 @@ def main() -> None:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
     random.seed(config.get("SEED"))
-    grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
-    algorithms: dict[str, MazeAlgorithm] = {
-        "DFS": DepthFirstSearch(),
-        "Kruskal": Kruskal(),
-        "HuntAndKill": HuntAndKill(),
-        "Prim": Prim(),
-    }
-    algorithm: str = config.get("ALGORITHM")
     try:
-        generator = MazeGenerator(
-            grid=grid,
-            algorithm=algorithms[algorithm],
-            is_perfect=config.get("PERFECT"),
-            entry_coords=config.get("ENTRY"),
-            exit_coords=config.get("EXIT")
-        )
+        grid, generator = get_generator(config)
         generator.generate()
         solver = Solver(grid, config.get("ENTRY"), config.get("EXIT"))
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)
             print(solver.shortest_path, file=output_file)
-
-        # MLX Visualization Pipeline ------------------------------------------
-        mlx = Mlx()
-        conn = mlx.mlx_init()
-        if conn is None:
-            sys.stderr.write(
-                "Error: Couldn't establish a connection "
-                "with the graphical server"
-            )
-            sys.exit(1)
-        _, screen_width, screen_height = mlx.mlx_get_screen_size(conn)
-        safebox_size = min(int(screen_width * 0.8), int(screen_height * 0.8))
-        aspect_ratio = config.get("WIDTH") / config.get("HEIGHT")
-        window_width = min(int(aspect_ratio * safebox_size), safebox_size)
-        window_height = int(window_width / aspect_ratio)
-        # Spawn the window slightly taller to absorb the title bar overhead
-        win_ptr = mlx.mlx_new_window(
-            conn, window_width, window_height, "A-Maze-ing"
-        )
-        wall_color = (255, 177, 19, 19)
-        bg_color = (255, 43, 55, 132)         # Corridor/Interior color
-        entry_color = (255, 0, 255, 0)        # Green
-        exit_color = (255, 0, 0, 0)           # Black
-        pattern_color = (255, 100, 100, 100)  # Gray
-
-        # Initialize and draw the maze onto the off-screen buffer
-        maze_image = MazeImage(
-            mlx, conn, generator, window_width, window_height, 10.0
-        )
-        maze_image.draw_maze(
-            wall_color,
-            bg_color,
-            entry_color,
-            exit_color,
-            pattern_color
-        )
-
-        # Calculate centering logic
-        maze_pixel_width = (
-            maze_image._cell_total * generator.grid.width
-            + maze_image._wall_thickness * 2
-        )
-        maze_pixel_height = (
-            maze_image._cell_total * generator.grid.height
-            + maze_image._wall_thickness * 2
-        )
-        padding_left = (window_width - maze_pixel_width) // 2
-        padding_top = (window_height - maze_pixel_height) // 2
-
-        # Initialize the PathImage with the solver's shortest path
-        path_color = (255, 0, 255, 0)  # Green path
-        path_image = PathImage(
-            mlx,
-            conn,
-            generator,
-            window_width,
-            window_height,
-            10.0,
-            path_color,
-            solver.shortest_path_cells
-        )
-
-        # Initialize the generator passing the exact same offset as the maze
-        path_frames = path_image.render_frames(
-            win_ptr, (padding_left, padding_top)
-        )
-
-        # Prepare the solid window background
-        background = Image(mlx, conn, window_width, window_height)
-        for i in range(window_width):
-            for j in range(window_height):
-                background.put_pixel(i, j, bg_color)
-
-        # Define Hooks
-        def handle_key(keycode: int, _: Any) -> None:
-            # Declare the variables that will be reassigned
-            nonlocal maze_image, path_image, path_frames
-
-            # 53 is macOS AppKit ESC, 65307 is Linux/X11 ESC
-            if keycode in (53, 65307):
-                mlx.mlx_loop_exit(conn)
-
-            # 18 is macOS AppKit '1', 49 is Linux/X11 ASCII '1'
-            elif keycode in (18, 49):
-                # Destroy old off-screen memory buffers to prevent leaks
-                path_image.destroy()
-                maze_image.destroy()
-                # Instantiate a fresh grid and regenerate the maze
-                new_grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
-                new_generator = MazeGenerator(
-                    grid=new_grid,
-                    algorithm=algorithms[algorithm],
-                    is_perfect=config.get("PERFECT"),
-                    entry_coords=config.get("ENTRY"),
-                    exit_coords=config.get("EXIT")
-                )
-                new_generator.generate()
-                # Solve the newly generated maze
-                new_solver = Solver(
-                    new_grid, config.get("ENTRY"), config.get("EXIT")
-                )
-                # Rebuild the visual assets with the new grid data
-                maze_image = MazeImage(
-                    mlx, conn, new_generator, window_width, window_height, 10.0
-                )
-                maze_image.draw_maze(
-                    wall_color,
-                    bg_color,
-                    entry_color,
-                    exit_color,
-                    pattern_color
-                )
-                path_image = PathImage(
-                    mlx,
-                    conn,
-                    new_generator,
-                    window_width,
-                    window_height,
-                    10.0,
-                    path_color,
-                    new_solver.shortest_path_cells
-                )
-                # Reset the animation frame generator
-                path_frames = path_image.render_frames(
-                    win_ptr, (padding_left, padding_top)
-                )
-
-        def close_window(_: Any) -> None:
-            mlx.mlx_loop_exit(conn)
-
-        def render_frame(_: Any) -> None:
-            """Push the pre-rendered images to the window every tick."""
-            background.render_on_window(win_ptr, 0, 0)
-            if maze_image.image is not None:
-                maze_image.image.render_on_window(
-                    win_ptr, padding_left, padding_top
-                )
-            # Request the next frame of the path animation
-            next(path_frames)
-
-        # Register hooks and execute
-        mlx.mlx_key_hook(win_ptr, handle_key, None)
-        mlx.mlx_hook(win_ptr, 33, 0, close_window, None)  # 33 is DestroyNotify
-        mlx.mlx_loop_hook(conn, render_frame, None)
-        mlx.mlx_loop(conn)
-
-        # Safe memory cleanup
-        mlx.mlx_destroy_window(conn, win_ptr)
-        path_image.destroy()
-        maze_image.destroy()
-        background.destroy()
-        if hasattr(mlx, 'mlx_release'):
-            mlx.mlx_release(conn)
-    except ValueError as e:
+        visualization_pipeline(config, generator, solver)
+    except (ValueError, OSError) as e:
         sys.stderr.write(f"Error: {e}\n")
         sys.exit(1)
 
