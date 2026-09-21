@@ -3,6 +3,8 @@ from mazegen.algorithms.protocol import MazeAlgorithm
 from mazegen.direction import Direction
 from mazegen.cell import Cell
 from .solver import Solver
+from typing import Optional
+from random import seed
 
 
 class MazeGenerator:
@@ -27,7 +29,8 @@ class MazeGenerator:
         entry_coords: tuple[int, int],
         exit_coords: tuple[int, int],
         algorithm: MazeAlgorithm,
-        is_perfect: bool = False
+        is_perfect: bool = False,
+        seed_value: Optional[int] = None
     ) -> None:
         """Initialize the maze generator with grid constraints and strategies.
 
@@ -51,6 +54,7 @@ class MazeGenerator:
         if (exit_coords[0] < 0 or exit_coords[0] >= grid.width
                 or exit_coords[1] < 0 or exit_coords[1] >= grid.height):
             raise ValueError("EXIT coordinates are out of bounds.")
+        seed(seed_value)
         self.grid = grid
         self.algorithm = algorithm
         self.is_perfect = is_perfect
