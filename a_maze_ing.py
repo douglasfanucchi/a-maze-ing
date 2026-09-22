@@ -200,8 +200,10 @@ def visualization_pipeline(config: Config, generator: MazeGenerator) -> None:
     _, screen_width, screen_height = mlx.mlx_get_screen_size(conn)
     safebox_size = min(int(screen_width * 0.8), int(screen_height * 0.8))
     aspect_ratio = config.get("WIDTH") / config.get("HEIGHT")
-    window_width = min(int(aspect_ratio * safebox_size), safebox_size)
-    window_height = int(window_width / aspect_ratio)
+    pre_window_width = min(int(aspect_ratio * safebox_size), safebox_size)
+    window_height = int(pre_window_width / aspect_ratio)
+    # Ensure minimum width for legend
+    window_width = max(pre_window_width, 475)
     footer_height = 40
     total_window_height = window_height + footer_height
     win_ptr = mlx.mlx_new_window(
