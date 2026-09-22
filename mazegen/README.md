@@ -15,6 +15,21 @@ In this package, a loop is a sequence of at least four Cell objects that begins 
 
 Finally, a *seed* may be specified to reproduce the same exact maze every time.
 
+### Installation
+
+To use the MazeGenerator class as a standalone module in your project simply copy the bundled package to your repository
+  
+```Bash 
+    cp mazegen-*.whl <your_project_path>
+    cd <your_project_path>
+```
+
+and install it with pip
+
+```Bash 
+    pip install mazegen-*.whl
+```
+
 ## Documentation
 
 Properties:

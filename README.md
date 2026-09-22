@@ -112,6 +112,21 @@ In this package, a loop is a sequence of at least four Cell objects that begins 
 
 Finally, a *seed* may be specified to allow reproducible mazes.
 
+### Installation
+
+To use the MazeGenerator class as a standalone module in your project simply copy the bundled package to your repository
+  
+```Bash 
+    cp mazegen-*.whl <your_project_path>
+    cd <your_project_path>
+```
+
+and install it with pip
+
+```Bash 
+    pip install mazegen-*.whl
+```
+
 ### Documentation
 
 Properties:
@@ -188,8 +203,8 @@ If another cell has the number `f` as wall encoding, we can check its binary rep
 
 ### **Roles**
 
-* **dode-lim:** Focused on  configuration parsing with regex, building the solver Class and architecturing the graphical features of the project.  
-* **lbalderr:** Focused on researching the core generation algorithms, creating core data structures (Cell, Grid) maintaining the project architecture and OOP best practices, and validating maze constraints. 
+* **dode-lim:** Focused on  configuration parsing with regex, implementing DFS and Prim generation algorithms, building the solver Class, creating an interface to facilitate the use of the MLX library and generating the bundled package of mazegen.
+* **lbalderr:** Focused on researching the core generation algorithms, creating core data structures (Cell, Grid), implementing Kruskal and Hunt and Kill algorithms and building the graphical features of the project. 
 
 ### **Planning & Evolution**
 
