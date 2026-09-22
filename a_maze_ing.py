@@ -211,14 +211,6 @@ def visualization_pipeline(config: Config, generator: MazeGenerator) -> None:
     )
     palettes = [
         {
-            "wall": (255, 177, 19, 19),
-            "bg": (255, 43, 55, 132),
-            "entry": (255, 255, 255, 255),
-            "exit": (255, 0, 0, 0),
-            "pattern": (255, 100, 100, 100),
-            "path": (255, 255, 255, 255),
-        },
-        {
             "wall": (255, 23, 0, 255),
             "bg": (255, 0, 0, 0),
             "entry": (255, 255, 255, 11),
@@ -227,13 +219,21 @@ def visualization_pipeline(config: Config, generator: MazeGenerator) -> None:
             "path": (255, 255, 255, 11),
         },
         {
-            "wall": (255, 0, 255, 0),
-            "bg": (255, 10, 10, 10),
-            "entry": (255, 0, 200, 255),
-            "exit": (255, 255, 0, 50),
-            "pattern": (255, 20, 50, 20),
-            "path": (255, 255, 255, 0),
-        }
+            "wall": (255, 177, 19, 19),
+            "bg": (255, 43, 55, 132),
+            "entry": (255, 255, 255, 255),
+            "exit": (255, 0, 0, 0),
+            "pattern": (255, 100, 100, 100),
+            "path": (255, 255, 255, 255),
+        },
+        {
+            "wall": (255, 63, 216, 71),
+            "bg": (255, 5, 5, 5),
+            "entry": (255, 255, 234, 4),
+            "exit": (255, 232, 0, 13),
+            "pattern": (255, 233, 86, 38),
+            "path": (255, 255, 234, 4),
+        },
     ]
 
     # Prepare the solid window background
