@@ -92,12 +92,12 @@ We selected DFS as the default strategy for its simplicity and because it genera
 The architecture was built with high cohesion and strict Object-Oriented Principles, making several components highly reusable:
 
 * **The Grid and Cell classes:** These handle standard 2D spatial awareness, bitwise wall management, and neighbor lookups. They can be reused for any grid-based game, pathfinding visualizer, or board state tracker.
-* **The Maze Generator:** It is available as a standalone module that can be imported and used in other projects, such as a Pac-Man game that uses the mazes as a playable board for building the game levels. Check the [mazegen module documentation](#-MazeGenerator) for more details.
+* **The Maze Generator:** It is available as a standalone module that can be imported and used in other projects, such as a Pac-Man game that uses the mazes as a playable board for building the game levels. Check the [mazegen module documentation](#MazeGenerator) for more details.
 * **The Solver class:** By leveraging hashable objects and flat dict\[Cell, Cell\] mappings instead of rigid 2D arrays, the BFS solver is completely decoupled from the generation logic. It can be dropped into any project that implements a compatible node graph to find the shortest path in linear time.
 
-## MazeGenerator
+## **MazeGenerator**
 
-### Description
+### **Description**
 This is the class responsible for generating a maze.
 
 To generate a maze, a `Width` and `Height` must be provided, these are the number of cells inthe horizontal and vertical directions, respectively. Internally, a `Grid` object will store `Cell` objects which represent each position of the maze.
@@ -112,7 +112,7 @@ In this package, a loop is a sequence of at least four Cell objects that begins 
 
 Finally, a *seed* may be specified to allow reproducible mazes.
 
-### Installation
+### **Installation**
 
 To use the MazeGenerator class as a standalone module in your project simply copy the bundled package to your repository
   
@@ -127,7 +127,7 @@ and install it with pip
     pip install mazegen-*.whl
 ```
 
-### Documentation
+### **Documentation**
 
 Properties:
 
@@ -145,7 +145,7 @@ Methods:
 - `export() -> str`: Return a string consisting of *height* lines where each line has *width* characters and each character represents the encoding of a given cell. Each character is a hexadecimal digit that encodes information about walls in that particular cell. More details bellow. Besides those encodings, the second to last line is a tuple representing the entry coordinates, while the last line is a tuple representing the exit coordinates.
 
 
-### Example
+### **Example**
 Creating a 50x50 perfect maze with `Prim`'s algorithm, using a seed with value 1 and checking for walls on the top-left cell:
 
 ```python
@@ -187,7 +187,7 @@ if top_left.has_wall(Direction.SOUTH):
 print(f"Shortest path: {generator.shortest_path}")
 ```
 
-### Encoding cells
+### **Cell Encoding**
 It was mentioned that `export` method returns a string with hexadecimal digits that encodes wall information of a given cell.
 
 A cell can have a `NORTH`, `EAST`, `SOUTH` and `WEST` wall. Each of this values are represented by a bit.
