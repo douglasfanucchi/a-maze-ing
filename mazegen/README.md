@@ -13,7 +13,7 @@ You also must specify whether you want a perfect or non-perfect maze. A perfect 
 
 In this package, a loop is a sequence of at least four Cell objects that begins and ends on the exact same cell, with all intermediate cells being unique. Practically, this means you can depart from an initial position and eventually return to it without reversing direction or retracing your steps.
 
-Finally, a *seed* may be specified to allow reproducible mazes.
+Finally, a *seed* may be specified to reproduce the same exact maze every time.
 
 ## Documentation
 
