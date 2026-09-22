@@ -1,10 +1,11 @@
-from mazegen.grid import Grid
-from mazegen.algorithms.protocol import MazeAlgorithm
-from mazegen.direction import Direction
-from mazegen.cell import Cell
+from random import seed
 from .solver import Solver
 from typing import Optional
-from random import seed
+from mazegen.cell import Cell
+from mazegen.grid import Grid
+from mazegen.direction import Direction
+from mazegen.algorithms.protocol import MazeAlgorithm
+from mazegen.algorithms import DepthFirstSearch, HuntAndKill, Kruskal, Prim
 
 
 class MazeGenerator:
@@ -25,17 +26,19 @@ class MazeGenerator:
 
     def __init__(
         self,
-        grid: Grid,
+        width: int,
+        height: int,
         entry_coords: tuple[int, int],
         exit_coords: tuple[int, int],
-        algorithm: MazeAlgorithm,
+        algorithm: str,
         is_perfect: bool = False,
         seed_value: Optional[int] = None
     ) -> None:
         """Initialize the maze generator with grid constraints and strategies.
 
         Args:
-            grid: The pre-allocated grid matrix to modify.
+            width: The total number of columns in the grid.
+            height: The total number of rows in the grid.
             entry_coords: The (x, y) coordinates where traversal begins.
             exit_coords: The (x, y) coordinates where traversal ends.
             algorithm: The generation strategy conforming to MazeAlgorithm.
@@ -43,21 +46,34 @@ class MazeGenerator:
                 removes dead-ends to introduce loops.
 
         Raises:
-            ValueError: If entry and exit coordinates match, or if either
-                coordinate falls outside the grid boundaries.
+            ValueError: If entry and exit coordinates match, if either
+                coordinate falls outside the grid boundaries, or
+                if either width or height is not positive.
         """
+        self.grid = Grid(width, height)
         if entry_coords == exit_coords:
             raise ValueError("ENTRY and EXIT must be different.")
-        if (entry_coords[0] < 0 or entry_coords[0] >= grid.width
-                or entry_coords[1] < 0 or entry_coords[1] >= grid.height):
+        if (entry_coords[0] < 0 or entry_coords[0] >= self.grid.width
+                or entry_coords[1] < 0 or entry_coords[1] >= self.grid.height):
             raise ValueError("ENTRY coordinates are out of bounds.")
-        if (exit_coords[0] < 0 or exit_coords[0] >= grid.width
-                or exit_coords[1] < 0 or exit_coords[1] >= grid.height):
+        if (exit_coords[0] < 0 or exit_coords[0] >= self.grid.width
+                or exit_coords[1] < 0 or exit_coords[1] >= self.grid.height):
             raise ValueError("EXIT coordinates are out of bounds.")
         if seed_value is not None:
             seed(seed_value)
-        self.grid = grid
-        self.algorithm = algorithm
+        algorithms: dict[str, MazeAlgorithm] = {
+            "DFS": DepthFirstSearch(),
+            "Kruskal": Kruskal(),
+            "HuntAndKill": HuntAndKill(),
+            "Prim": Prim(),
+        }
+        selected_algorithm = algorithms.get(algorithm)
+        if selected_algorithm is None:
+            available = "'DFS', 'Kruskal', 'HuntAndKill', 'Prim'"
+            raise ValueError(
+                f"Algorithm '{algorithm}' not found. Available: {available}"
+            )
+        self.algorithm = selected_algorithm
         self.is_perfect = is_perfect
         self.entry = entry_coords
         self.exit = exit_coords

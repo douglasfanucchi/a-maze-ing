@@ -1,16 +1,13 @@
 import sys
 import random
 from typing import Any
-from mazegen.grid import Grid
-from mazegen.generator import MazeGenerator
-from mazegen.algorithms import DepthFirstSearch, HuntAndKill, Kruskal, Prim
+from mazegen import MazeGenerator
 from maze_config import Config
-from mazegen.algorithms import MazeAlgorithm
 from mlx import Mlx  # type: ignore[import-untyped, unused-ignore]
 from mlx_api import Image, MazeImage, PathImage
 
 
-def get_generator(config: Config) -> tuple[Grid, MazeGenerator]:
+def get_generator(config: Config) -> MazeGenerator:
     """Initialize the grid and maze generator from the given configuration.
 
     Args:
@@ -26,22 +23,15 @@ def get_generator(config: Config) -> tuple[Grid, MazeGenerator]:
         ValueError: If the entry or exit coordinates are invalid or fall
         outside the grid boundaries.
     """
-    grid = Grid(config.get("WIDTH"), config.get("HEIGHT"))
-    algorithms: dict[str, MazeAlgorithm] = {
-        "DFS": DepthFirstSearch(),
-        "Kruskal": Kruskal(),
-        "HuntAndKill": HuntAndKill(),
-        "Prim": Prim(),
-    }
-    algorithm: str = config.get("ALGORITHM")
     generator = MazeGenerator(
-        grid=grid,
-        algorithm=algorithms[algorithm],
+        config.get("WIDTH"),
+        config.get("HEIGHT"),
+        algorithm=config.get("ALGORITHM"),
         is_perfect=config.get("PERFECT"),
         entry_coords=config.get("ENTRY"),
         exit_coords=config.get("EXIT")
     )
-    return (grid, generator)
+    return generator
 
 
 def handle_key(keycode: int, context: dict[str, Any]) -> None:
@@ -65,7 +55,7 @@ def handle_key(keycode: int, context: dict[str, Any]) -> None:
     if keycode in (18, 49):
         config = context["config"]
         try:
-            new_grid, new_generator = get_generator(config)
+            new_generator = get_generator(config)
             new_generator.generate()
         except ValueError as e:
             print(f"Regeneration failed: {e}")
@@ -376,7 +366,7 @@ def main() -> None:
         sys.exit(1)
     random.seed(config.get("SEED"))
     try:
-        grid, generator = get_generator(config)
+        generator = get_generator(config)
         generator.generate()
         with open(config.get("OUTPUT_FILE"), "w") as output_file:
             print(generator.export(), file=output_file)

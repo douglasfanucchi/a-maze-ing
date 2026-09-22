@@ -3,17 +3,15 @@
 ## Description
 This is the class responsible for generating a maze.
 
-To generate a maze, a `Grid` object must be provided. This `Grid` object stores `Cell` objects, which represents each position of the maze.
+To generate a maze, a `Width` and `Height` must be provided, these are the number of cells inthe horizontal and vertical directions, respectively. Internally, a `Grid` object will store `Cell` objects which represent each position of the maze.
 
-Two coordinates must be provided as well, representing the entry position and the exit position.
+Two coordinates (x: int > 0, y: int > 0) must be provided as well, representing the entry position and the exit position.
 
-A few algorithms are present into this package. Depth-first search (DFS), Kruskal, Hunt-and-Kill and Prim. Each of them implement an adaptation of its original version in order to generate a random maze.
+A few algorithms are present in this package. Depth-first search (DFS), Kruskal, Hunt-and-Kill and Prim. Each of them implement an adaptation of its original version in order to generate a random maze.
 
 You also must specify whether you want a perfect or non-perfect maze. A perfect maze means that there is no *loops* inside the maze, whereas the non-perfect maze has *loops*.
 
-In this package, a *loop* is a sequence of at least four `Cell` where the first and the last `Cell` of this sequence are the same. To be a loop, every cell in this sequence must be different, except for the first and the last ones.
-
-It means that for a given initial position, you can walk through the maze and get back to that initial given position (without moving backwards).
+In this package, a loop is a sequence of at least four Cell objects that begins and ends on the exact same cell, with all intermediate cells being unique. Practically, this means you can depart from an initial position and eventually return to it without reversing direction or retracing your steps.
 
 Finally, a *seed* may be specified to allow reproducible mazes.
 
@@ -26,44 +24,55 @@ Properties:
 - `is_perfect: bool`: whether the maze is perfect or not.
 - `entry: tuple[int, int]`: coordinates to the entry of the maze.
 - `exit: tuple[int, int]`: coordinates to the exit of the maze.
-- `shortest_path: str`: string that contains the cardinal coordinates to the shortest path from entry to exit.
-- `shortest_path_cells: list[Cell]`: a list of the `Cell` representing the shortest path.
+- `shortest_path: str`: string that contains the cardinal directions for the shortest path from entry to exit.
+- `shortest_path_cells: list[Cell]`: a list of `Cell` objects representing the shortest path.
 
 Methods:
 
-- `generate() -> None`: it executes the selected algorithm to create the maze and save its shortest path
-- `export() -> str`: it creates *height* lines where each line has *width* characters where each character represents the encoding of a given cell. Possible values for each character are hexadecimal digit that encodes information about walls in that particular cell. More details bellow. Besides those encodings, the second to last line is a tuple that refers to the entry coordinates. The last line is also a tuple but this one refers to the exit coordinates.
+- `generate() -> None`: Executes the selected algorithm to create the maze and save its shortest path
+- `export() -> str`: Return a string consisting of *height* lines where each line has *width* characters and each character represents the encoding of a given cell. Each character is a hexadecimal digit that encodes information about walls in that particular cell. More details bellow. Besides those encodings, the second to last line is a tuple representing the entry coordinates, while the last line is a tuple representing the exit coordinates.
 
 
 ## Example
 Creating a 50x50 perfect maze with `Prim`'s algorithm, using a seed with value 1 and checking for walls on the top-left cell:
 
-```.py
+```python
 from mazegen import MazeGenerator
-from mazegen.grid import Grid
-from mazegen.algorithms import Prim
 from mazegen.direction import Direction
 
-grid = Grid(50, 50)
-entry = (0, 0)
-exit = (49, 49)
-generator = MazeGenerator(
-    grid,
-    entry,
-    exit,
-    Prim(),
-    True,
-    1
-)
-top_left = generator.grid.get_cell(0, 0)
+width = 50
+height = 50
+entry_coords = (0, 0)
+exit_coords = (49, 49)
+algorithm = "Prim"
+seed_value = 1
+is_perfect_maze = True
 
+generator = MazeGenerator(
+    width,
+    height,
+    entry_coords,
+    exit_coords,
+    algorithm,
+    is_perfect_maze,
+    seed_value
+)
+
+# Execute the algorithm
+generator.generate()
+
+# Access the generated structure
+top_left = generator.grid.get_cell(0, 0)
 if top_left is None:
     raise Exception("invalid cell position")
 
 if top_left.has_wall(Direction.EAST):
     print("It has east wall!")
-if top_left.has_wall(Direction.South):
+if top_left.has_wall(Direction.SOUTH):
     print("It has south wall!")
+
+# Access the solution
+print(f"Shortest path: {generator.shortest_path}")
 ```
 
 ## Encoding cells
