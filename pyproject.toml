@@ -5,6 +5,10 @@ build-backend="hatchling.build"
 [project]
 name="mazegen"
 version="1.0.0"
+authors = [
+  { name="Douglas Fanucchi" },
+  { name="Lucas B. Paiva" }
+]
 description="A reusable maze generation and solving library."
 requires-python = ">=3.10"
 readme = "mazegen/README.md"
