@@ -5,9 +5,10 @@ build-backend="hatchling.build"
 [project]
 name="mazegen"
 version="1.0.0"
-description="It provides a maze generator."
+description="A reusable maze generation and solving library."
 requires-python = ">=3.10"
 readme = "mazegen/README.md"
+license = "MIT"
 
 [tool.hatch.build.targets.wheel]
 packages = ["mazegen"]
