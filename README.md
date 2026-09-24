@@ -7,6 +7,8 @@
 This project is a maze generation and solving application made in Python. The goal is to programmatically generate randomized mazes that adhere to specific rules (such as the 42 school reserved center pattern and Pac-Man board playability rules) and then efficiently find the shortest path from an entry to an exit point.  
 The generator produces fully connected, loop-enabled mazes that avoid large $3\times3$ open areas while guaranteeing open corners. The solver utilizes graph traversal techniques (BFS) to navigate the generated grid and output the shortest path.
 
+![maze_image](./maze_image.png)
+
 ## **Instructions**
 
 ### **Prerequisites**
